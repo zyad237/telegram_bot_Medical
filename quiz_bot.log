@@ -1,0 +1,304 @@
+2025-10-25 17:23:45,471 - __main__ - INFO - Database initialized successfully
+2025-10-25 17:23:45,959 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 17:23:45,959 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 17:23:45,959 - __main__ - INFO - 💾 Database file: quiz_bot.db
+2025-10-25 17:23:45,960 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 17:23:46,589 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 17:23:46,774 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 17:23:46,776 - telegram.ext.Application - INFO - Application started
+2025-10-25 17:24:01,205 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:24:01,558 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:24:04,188 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:24:04,379 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:24:04,503 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 400 Bad Request"
+2025-10-25 17:24:04,504 - __main__ - ERROR - Error handling callback topic:Anatomy: Button_data_invalid
+2025-10-25 17:24:04,681 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:24:35,308 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:25:06,438 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:25:37,570 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:26:08,696 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:30:28,939 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 17:30:28,940 - __main__ - INFO - ✅ Token loaded from environment
+2025-10-25 17:30:28,940 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 17:30:28,940 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 17:30:29,866 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 17:30:30,016 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 17:30:30,018 - telegram.ext.Application - INFO - Application started
+2025-10-25 17:30:40,087 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:30:40,370 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:30:41,276 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:30:41,395 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:30:41,624 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:30:42,724 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:30:42,823 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:30:43,028 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:30:52,861 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:02,992 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:13,134 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:23,249 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:33,347 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:39,765 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:40,270 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:31:41,119 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:41,214 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:31:41,329 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:31:42,350 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:31:42,430 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:31:42,534 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:31:52,432 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:02,508 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:12,631 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:22,724 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:32,806 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:42,915 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:32:53,179 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:03,287 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:13,427 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 17:33:13,428 - __main__ - INFO - ✅ Token loaded from environment
+2025-10-25 17:33:13,428 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 17:33:13,429 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:33:13,429 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 17:33:14,136 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 17:33:14,223 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 17:33:14,224 - telegram.ext.Application - INFO - Application started
+2025-10-25 17:33:18,581 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:18,590 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:33:18,882 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:33:19,905 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:20,080 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:33:20,081 - __main__ - INFO - Looking for subtopics in: data\anatomy
+2025-10-25 17:33:20,081 - __main__ - INFO - All files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 17:33:20,081 - __main__ - INFO - Found subtopics for anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 17:33:20,317 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:33:21,036 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:21,237 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:33:21,238 - __main__ - INFO - Looking for questions at: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:33:21,239 - __main__ - INFO - File exists: False
+2025-10-25 17:33:21,239 - __main__ - ERROR - Question file not found: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:33:21,546 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:33:31,170 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:41,307 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:33:51,451 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:01,582 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:11,721 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:21,807 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:31,893 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:42,134 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:34:52,368 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:02,469 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:12,593 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:22,671 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:32,821 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:42,956 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:35:53,056 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:03,338 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:13,476 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:23,572 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:33,793 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:43,896 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:36:54,079 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:04,585 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:14,696 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:24,948 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:35,606 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:45,836 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:37:56,063 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:06,154 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:16,255 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:26,495 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:36,632 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:46,872 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:38:57,010 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:07,461 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:17,537 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:27,730 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:29,532 - __main__ - INFO - Database initialized successfully
+2025-10-25 17:39:30,006 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 17:39:30,007 - __main__ - INFO - ✅ Token loaded from environment variable
+2025-10-25 17:39:30,007 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 17:39:30,008 - __main__ - INFO - 💾 Database file: quiz_bot.db
+2025-10-25 17:39:30,008 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:39:30,008 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 17:39:30,008 - __main__ - INFO - Looking for subtopics in: data\Anatomy
+2025-10-25 17:39:30,009 - __main__ - INFO - All files in data\Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 17:39:30,009 - __main__ - INFO - Found subtopics for Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 17:39:30,009 - __main__ - INFO -    Anatomy: 3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta., Derivative of endoderm, Derivatives of the Mesodermal Germ Layer, The Embryonic Period 3rd to 8th Week
+2025-10-25 17:39:30,009 - __main__ - INFO - Looking for subtopics in: data\Histology
+2025-10-25 17:39:30,009 - __main__ - INFO - All files in data\Histology: ['enzymes.csv']
+2025-10-25 17:39:30,009 - __main__ - INFO - Found subtopics for Histology: ['enzymes']
+2025-10-25 17:39:30,009 - __main__ - INFO -    Histology: enzymes
+2025-10-25 17:39:30,707 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 17:39:30,803 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 17:39:30,804 - telegram.ext.Application - INFO - Application started
+2025-10-25 17:39:43,295 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:43,306 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:39:43,670 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:39:45,755 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:45,958 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:39:45,958 - __main__ - INFO - Received callback: t:anatomy
+2025-10-25 17:39:45,959 - __main__ - INFO - Looking for subtopics in: data\anatomy
+2025-10-25 17:39:45,959 - __main__ - INFO - All files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 17:39:45,959 - __main__ - INFO - Found subtopics for anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 17:39:46,072 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:39:47,085 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:39:47,391 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:39:47,392 - __main__ - INFO - Received callback: s:anatomy:3rd_month_to_bi
+2025-10-25 17:39:47,392 - __main__ - INFO - Loading questions for anatomy/3rd_month_to_bi
+2025-10-25 17:39:47,392 - __main__ - INFO - Looking for questions at: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:39:47,392 - __main__ - INFO - File exists: False
+2025-10-25 17:39:47,393 - __main__ - ERROR - Question file not found: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:39:47,393 - __main__ - ERROR - No questions loaded for anatomy/3rd_month_to_bi
+2025-10-25 17:39:47,493 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 400 Bad Request"
+2025-10-25 17:39:47,494 - __main__ - ERROR - Error handling callback: Can't parse entities: can't find end of the entity starting at byte offset 212
+2025-10-25 17:39:47,698 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:40:18,213 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:40:49,345 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:41:20,473 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:41:26,258 - __main__ - INFO - Database initialized successfully
+2025-10-25 17:49:19,512 - __main__ - INFO - Database initialized successfully
+2025-10-25 17:49:19,938 - __main__ - ERROR - Failed to start bot: 'Updater' object has no attribute '_Updater__polling_cleanup_cb' and no __dict__ for setting new attributes
+2025-10-25 17:50:25,509 - __main__ - INFO - Database initialized successfully
+2025-10-25 17:50:25,994 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 17:50:25,994 - __main__ - INFO - ✅ Token loaded from environment variable
+2025-10-25 17:50:25,995 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 17:50:25,995 - __main__ - INFO - 💾 Database file: quiz_bot.db
+2025-10-25 17:50:25,995 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:50:25,995 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 17:50:25,995 - __main__ - INFO - Looking for subtopics in: data\Anatomy
+2025-10-25 17:50:25,996 - __main__ - INFO - All files in data\Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 17:50:25,996 - __main__ - INFO - Found subtopics for Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 17:50:25,996 - __main__ - INFO -    Anatomy: 3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta., Derivative of endoderm, Derivatives of the Mesodermal Germ Layer, The Embryonic Period 3rd to 8th Week
+2025-10-25 17:50:25,996 - __main__ - INFO - Looking for subtopics in: data\Histology
+2025-10-25 17:50:25,996 - __main__ - INFO - All files in data\Histology: ['enzymes.csv']
+2025-10-25 17:50:25,997 - __main__ - INFO - Found subtopics for Histology: ['enzymes']
+2025-10-25 17:50:25,997 - __main__ - INFO -    Histology: enzymes
+2025-10-25 17:50:25,997 - __main__ - INFO - 🔄 Starting bot polling...
+2025-10-25 17:50:26,361 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 17:50:26,453 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 17:50:26,454 - telegram.ext.Application - INFO - Application started
+2025-10-25 17:50:32,533 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:50:32,542 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 17:50:32,901 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 17:50:33,913 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:50:33,998 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:50:33,999 - __main__ - INFO - Received callback: t:anatomy
+2025-10-25 17:50:33,999 - __main__ - INFO - Looking for subtopics in: data\anatomy
+2025-10-25 17:50:33,999 - __main__ - INFO - All files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 17:50:33,999 - __main__ - INFO - Found subtopics for anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 17:50:34,122 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:50:35,181 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:50:35,257 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 17:50:35,258 - __main__ - INFO - Received callback: s:anatomy:3rd_month_to_bi
+2025-10-25 17:50:35,258 - __main__ - INFO - Loading questions for anatomy/3rd_month_to_bi
+2025-10-25 17:50:35,258 - __main__ - INFO - Looking for questions at: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:50:35,258 - __main__ - INFO - File exists: False
+2025-10-25 17:50:35,259 - __main__ - ERROR - Question file not found: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 17:50:35,259 - __main__ - ERROR - No questions loaded for anatomy/3rd_month_to_bi
+2025-10-25 17:50:35,397 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 17:51:06,289 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:51:37,376 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:52:08,462 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:52:39,708 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:53:10,880 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:53:41,980 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:54:13,086 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:54:44,166 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:55:15,243 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:55:46,347 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:56:17,441 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:56:48,532 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:57:19,678 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:57:50,755 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:58:21,834 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:58:52,927 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:59:24,029 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 17:59:55,122 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:00:26,335 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:00:29,307 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:00:29,320 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 18:00:30,650 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 18:00:32,178 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:00:32,482 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 18:00:32,483 - __main__ - INFO - Received callback: t:anatomy
+2025-10-25 18:00:32,483 - __main__ - INFO - Looking for subtopics in: data\anatomy
+2025-10-25 18:00:32,483 - __main__ - INFO - All files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 18:00:32,483 - __main__ - INFO - Found subtopics for anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 18:00:32,846 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 18:00:34,941 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:00:35,017 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 18:00:35,018 - __main__ - INFO - Received callback: s:anatomy:3rd_month_to_bi
+2025-10-25 18:00:35,018 - __main__ - INFO - Loading questions for anatomy/3rd_month_to_bi
+2025-10-25 18:00:35,018 - __main__ - INFO - Looking for questions at: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 18:00:35,018 - __main__ - INFO - File exists: False
+2025-10-25 18:00:35,018 - __main__ - ERROR - Question file not found: data\anatomy\3rd_month_to_bi.csv
+2025-10-25 18:00:35,018 - __main__ - ERROR - No questions loaded for anatomy/3rd_month_to_bi
+2025-10-25 18:00:36,350 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 18:01:06,073 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:01:37,188 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:02:08,312 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:02:39,464 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:03:10,562 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:03:42,231 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:04:13,364 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:04:44,538 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:05:50,943 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:06:22,081 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:06:53,204 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:24,447 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:31,972 - __main__ - INFO - Database initialized successfully
+2025-10-25 18:07:32,444 - __main__ - INFO - 🤖 Quiz Bot is starting...
+2025-10-25 18:07:32,445 - __main__ - INFO - ✅ Token loaded from environment variable
+2025-10-25 18:07:32,445 - __main__ - INFO - 📁 Data directory: Z:\telegram_bot_Medical\data
+2025-10-25 18:07:32,445 - __main__ - INFO - 💾 Database file: quiz_bot.db
+2025-10-25 18:07:32,446 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 18:07:32,446 - __main__ - INFO - 📚 Available topics: Anatomy, Histology
+2025-10-25 18:07:32,446 - __main__ - INFO - Looking for subtopics in: data\Anatomy
+2025-10-25 18:07:32,446 - __main__ - INFO - All files in data\Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 18:07:32,446 - __main__ - INFO - Found subtopics for Anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 18:07:32,447 - __main__ - INFO -    Anatomy: 3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta., Derivative of endoderm, Derivatives of the Mesodermal Germ Layer, The Embryonic Period 3rd to 8th Week
+2025-10-25 18:07:32,447 - __main__ - INFO - Looking for subtopics in: data\Histology
+2025-10-25 18:07:32,447 - __main__ - INFO - All files in data\Histology: ['enzymes.csv']
+2025-10-25 18:07:32,447 - __main__ - INFO - Found subtopics for Histology: ['enzymes']
+2025-10-25 18:07:32,447 - __main__ - INFO -    Histology: enzymes
+2025-10-25 18:07:32,447 - __main__ - INFO - 🔄 Starting bot polling...
+2025-10-25 18:07:33,253 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getMe "HTTP/1.1 200 OK"
+2025-10-25 18:07:33,502 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/deleteWebhook "HTTP/1.1 200 OK"
+2025-10-25 18:07:33,503 - telegram.ext.Application - INFO - Application started
+2025-10-25 18:07:36,255 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:36,267 - __main__ - INFO - Found topics: ['Anatomy', 'Histology']
+2025-10-25 18:07:36,383 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 18:07:37,451 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:37,544 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 18:07:37,544 - __main__ - INFO - Received callback: t:anatomy
+2025-10-25 18:07:37,544 - __main__ - INFO - Looking for subtopics in: data\anatomy
+2025-10-25 18:07:37,545 - __main__ - INFO - All files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 18:07:37,545 - __main__ - INFO - Found subtopics for anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta.', 'Derivative of endoderm', 'Derivatives of the Mesodermal Germ Layer', 'The Embryonic Period 3rd to 8th Week']
+2025-10-25 18:07:37,705 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 18:07:38,576 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:38,778 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/answerCallbackQuery "HTTP/1.1 200 OK"
+2025-10-25 18:07:38,779 - __main__ - INFO - Received callback: s:anatomy:3rd Month to birth - Fetal Monthly changes - Time of b
+2025-10-25 18:07:38,779 - __main__ - INFO - Loading questions for anatomy/3rd Month to birth - Fetal Monthly changes - Time of b
+2025-10-25 18:07:38,780 - __main__ - INFO - Looking for questions at: data\anatomy\3rd Month to birth - Fetal Monthly changes - Time of b.csv
+2025-10-25 18:07:38,780 - __main__ - INFO - File exists: False
+2025-10-25 18:07:38,780 - __main__ - ERROR - Question file not found: data\anatomy\3rd Month to birth - Fetal Monthly changes - Time of b.csv
+2025-10-25 18:07:38,780 - __main__ - INFO - Available files in data\anatomy: ['3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv', 'Derivative of endoderm.csv', 'Derivatives of the Mesodermal Germ Layer.csv', 'The Embryonic Period 3rd to 8th Week.csv']
+2025-10-25 18:07:38,780 - __main__ - INFO - Found similar file: 3rd Month to birth - Fetal Monthly changes - Time of birth - Placenta..csv
+2025-10-25 18:07:38,781 - __main__ - WARNING - Invalid correct answer in row 1: 'CORRECT'
+2025-10-25 18:07:38,782 - __main__ - INFO - Processed 97 rows, found 96 valid questions
+2025-10-25 18:07:39,192 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/editMessageText "HTTP/1.1 200 OK"
+2025-10-25 18:07:41,453 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendPoll "HTTP/1.1 200 OK"
+2025-10-25 18:07:41,454 - __main__ - INFO - Sent question 1 to user 1701281102
+2025-10-25 18:07:48,713 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:48,714 - __main__ - INFO - User answered correctly! Score: 1
+2025-10-25 18:07:49,529 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendMessage "HTTP/1.1 200 OK"
+2025-10-25 18:07:49,851 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:07:49,940 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/stopPoll "HTTP/1.1 200 OK"
+2025-10-25 18:07:49,941 - __main__ - INFO - Stopped poll for question 1
+2025-10-25 18:07:52,272 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/sendPoll "HTTP/1.1 200 OK"
+2025-10-25 18:07:52,273 - __main__ - INFO - Sent question 2 to user 1701281102
+2025-10-25 18:08:20,961 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:08:52,199 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:09:23,330 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:09:54,457 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:10:25,617 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
+2025-10-25 18:10:56,717 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8236591484:AAE89yIh5amaGK7q36mkUFmnkODDCwWExmY/getUpdates "HTTP/1.1 200 OK"
