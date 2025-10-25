@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Telegram Quiz Bot - Railway Optimized Dynamic Version
-Automatically creates and manages data structure on Railway.
+Telegram Quiz Bot - Dynamic Version
+Automatically creates sample data and works with any CSV files added to the data folder.
 """
 
 import os
@@ -30,7 +30,7 @@ from telegram.error import TelegramError, BadRequest
 # CONFIGURATION
 # ==============================
 
-# Get token from environment variable
+# Get token from environment variable (SECURE)
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 if not TOKEN:
@@ -61,43 +61,49 @@ logger = logging.getLogger(__name__)
 # ==============================
 
 def sanitize_text(text: str) -> str:
-    """Sanitize text to prevent Markdown parsing errors."""
+    """
+    Sanitize text to prevent Markdown parsing errors.
+    Escapes special characters and handles problematic sequences.
+    """
     if not text:
         return ""
     
+    # First escape HTML characters
     text = html.escape(text)
+    
+    # Escape Markdown special characters
     markdown_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
     for char in markdown_chars:
         text = text.replace(char, f'\\{char}')
     
+    # Remove any remaining problematic sequences
     text = re.sub(r'\\+', r'\\', text)
+    
     return text
 
 # ==============================
-# DYNAMIC DATA MANAGER - RAILWAY OPTIMIZED
+# DYNAMIC DATA MANAGER
 # ==============================
 
 class DataManager:
-    """Manages dynamic data creation optimized for Railway deployment"""
+    """Manages dynamic data creation and file discovery"""
     
     @staticmethod
-    def ensure_data_structure():
-        """Ensure data structure exists and create comprehensive sample data"""
+    def initialize_data_structure():
+        """Initialize the data structure with sample data if empty"""
         data_dir = CONFIG["data_dir"]
         
-        # Always create data directory
+        # Create data directory
         os.makedirs(data_dir, exist_ok=True)
-        logger.info(f"📁 Ensured data directory exists: {data_dir}")
         
-        # Create comprehensive sample data
-        DataManager.create_comprehensive_sample_data()
-        
-        # Verify the structure was created
+        # Check if we have any topics
         topics = DataManager.get_existing_topics()
-        if topics:
-            logger.info(f"✅ Data structure verified. Topics: {topics}")
+        
+        if not topics:
+            logger.info("No existing data found. Creating sample data structure...")
+            DataManager.create_sample_data()
         else:
-            logger.error("❌ Failed to create data structure")
+            logger.info(f"Found existing topics: {topics}")
     
     @staticmethod
     def get_existing_topics() -> List[str]:
@@ -111,100 +117,88 @@ class DataManager:
         return sorted(topics)
     
     @staticmethod
-    def create_comprehensive_sample_data():
-        """Create comprehensive sample data that will definitely work"""
+    def create_sample_data():
+        """Create comprehensive sample data for demonstration"""
         data_dir = CONFIG["data_dir"]
         
-        # Comprehensive sample data covering multiple topics
+        # Sample topics and their questions
         sample_data = {
-            "ana": {
-                "Human Body Basics.csv": [
-                    ["What is the largest organ in the human body?", "Liver", "Skin", "Heart", "Lungs", "B"],
-                    ["How many bones are in the adult human body?", "196", "206", "216", "226", "B"],
-                    ["What carries oxygen in the blood?", "Platelets", "White blood cells", "Red blood cells", "Plasma", "C"],
-                    ["What is the normal human body temperature?", "36.5°C", "37.0°C", "37.5°C", "38.0°C", "B"],
-                    ["Which organ produces insulin?", "Liver", "Pancreas", "Kidney", "Stomach", "B"]
-                ],
-                "Organ Systems.csv": [
-                    ["Which system includes the heart and blood vessels?", "Nervous", "Circulatory", "Digestive", "Respiratory", "B"],
-                    ["What is the main function of the respiratory system?", "Blood circulation", "Oxygen exchange", "Food digestion", "Waste removal", "B"],
-                    ["Which system is responsible for movement?", "Nervous", "Circulatory", "Muscular", "Endocrine", "C"]
-                ]
-            },
-            "biology": {
-                "Cell Biology.csv": [
-                    ["What is the powerhouse of the cell?", "Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus", "B"],
-                    ["What process do plants use to make food?", "Respiration", "Photosynthesis", "Digestion", "Fermentation", "B"],
-                    ["What is the basic unit of life?", "Atom", "Cell", "Molecule", "Organ", "B"]
-                ],
-                "Genetics.csv": [
-                    ["How many chromosomes do humans have?", "23", "46", "52", "64", "B"],
-                    ["What is DNA's main function?", "Energy production", "Genetic information storage", "Cell structure", "Waste removal", "B"]
-                ]
-            },
-            "science": {
-                "Physics Basics.csv": [
-                    ["What is the unit of force?", "Joule", "Watt", "Newton", "Volt", "C"],
-                    ["What is the speed of light?", "300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s", "A"]
-                ],
-                "Chemistry.csv": [
-                    ["What is the chemical symbol for gold?", "Go", "Gd", "Au", "Ag", "C"],
-                    ["What is H2O commonly known as?", "Oxygen", "Hydrogen", "Water", "Carbon dioxide", "C"]
-                ]
-            },
-            "general_knowledge": {
-                "World Geography.csv": [
-                    ["What is the largest continent?", "Africa", "Europe", "Asia", "North America", "C"],
-                    ["What is the capital of France?", "London", "Paris", "Berlin", "Madrid", "B"]
-                ],
-                "History.csv": [
-                    ["Who was the first president of the United States?", "Thomas Jefferson", "George Washington", "Abraham Lincoln", "John Adams", "B"]
-                ]
-            }
+            "anatomy": [
+                {
+                    "filename": "Human Body Basics.csv",
+                    "questions": [
+                        ["What is the largest organ in the human body?", "Liver", "Skin", "Heart", "Lungs", "B"],
+                        ["How many bones are in the adult human body?", "196", "206", "216", "226", "B"],
+                        ["What carries oxygen in the blood?", "Platelets", "White blood cells", "Red blood cells", "Plasma", "C"]
+                    ]
+                },
+                {
+                    "filename": "Organ Systems.csv", 
+                    "questions": [
+                        ["Which system includes the heart and blood vessels?", "Nervous", "Circulatory", "Digestive", "Respiratory", "B"],
+                        ["What is the main function of the respiratory system?", "Blood circulation", "Oxygen exchange", "Food digestion", "Waste removal", "B"]
+                    ]
+                }
+            ],
+            "biology": [
+                {
+                    "filename": "Cell Biology.csv",
+                    "questions": [
+                        ["What is the powerhouse of the cell?", "Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus", "B"],
+                        ["What process do plants use to make food?", "Respiration", "Photosynthesis", "Digestion", "Fermentation", "B"]
+                    ]
+                }
+            ],
+            "general_knowledge": [
+                {
+                    "filename": "Science and Technology.csv",
+                    "questions": [
+                        ["What planet is known as the Red Planet?", "Venus", "Mars", "Jupiter", "Saturn", "B"],
+                        ["What is the chemical symbol for gold?", "Go", "Gd", "Au", "Ag", "C"]
+                    ]
+                }
+            ]
         }
         
-        files_created = 0
         for topic, subtopics in sample_data.items():
             topic_dir = os.path.join(data_dir, topic)
             os.makedirs(topic_dir, exist_ok=True)
             
-            for filename, questions in subtopics.items():
+            for subtopic_data in subtopics:
+                filename = subtopic_data["filename"]
+                questions = subtopic_data["questions"]
                 file_path = os.path.join(topic_dir, filename)
                 
-                # Always create/overwrite to ensure files exist
-                try:
+                # Only create if it doesn't exist
+                if not os.path.exists(file_path):
                     with open(file_path, 'w', encoding='utf-8', newline='') as f:
                         writer = csv.writer(f)
                         for question_data in questions:
                             writer.writerow(question_data)
                     
-                    files_created += 1
-                    logger.info(f"📄 Created sample file: {topic}/{filename}")
-                    
-                except Exception as e:
-                    logger.error(f"❌ Failed to create {file_path}: {e}")
+                    logger.info(f"Created sample file: {topic}/{filename}")
         
-        logger.info(f"✅ Created {files_created} sample files across {len(sample_data)} topics")
-        return files_created
+        logger.info("✅ Sample data creation completed!")
     
     @staticmethod
     def scan_for_new_files():
         """Scan for any new CSV files that were added manually"""
         data_dir = CONFIG["data_dir"]
         if not os.path.exists(data_dir):
-            return False
+            return
         
-        total_files = 0
+        new_files_found = False
+        
         for topic in os.listdir(data_dir):
             topic_path = os.path.join(data_dir, topic)
             if os.path.isdir(topic_path):
-                csv_files = [f for f in os.listdir(topic_path) if f.endswith('.csv')]
-                total_files += len(csv_files)
-                if csv_files:
-                    logger.info(f"📁 {topic}: {len(csv_files)} CSV files")
+                for file in os.listdir(topic_path):
+                    if file.endswith('.csv') and not file.startswith('.'):
+                        file_path = os.path.join(topic_path, file)
+                        # You could add additional validation here
+                        logger.debug(f"Found CSV file: {topic}/{file}")
         
-        logger.info(f"🔍 File scan complete: {total_files} total CSV files")
-        return total_files > 0
+        return new_files_found
 
 # ==============================
 # CALLBACK DATA MANAGER
@@ -226,7 +220,7 @@ class CallbackManager:
     def create_topic_callback(topic: str) -> str:
         """Create safe topic callback data"""
         safe_topic = CallbackManager.sanitize_callback_text(topic)
-        return f"t:{safe_topic}"
+        return f"t:{safe_topic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
     def create_subtopic_callback(topic: str, subtopic: str) -> str:
@@ -243,7 +237,7 @@ class CallbackManager:
             elif callback_data.startswith("t:"):
                 return {"type": "topic", "topic": callback_data[2:]}
             elif callback_data.startswith("s:"):
-                parts = callback_data.split(":", 2)
+                parts = callback_data.split(":", 2)  # Split only twice to preserve subtopic
                 if len(parts) >= 3:
                     return {"type": "subtopic", "topic": parts[1], "subtopic": parts[2]}
         except Exception as e:
@@ -285,9 +279,9 @@ class DatabaseManager:
                     )
                 ''')
                 conn.commit()
-                logger.info("✅ Database initialized successfully")
+                logger.info("Database initialized successfully")
         except sqlite3.Error as e:
-            logger.error(f"❌ Database error: {e}")
+            logger.error(f"Database error: {e}")
     
     def update_user(self, user_id: int, username: str, first_name: str, last_name: str):
         try:
@@ -312,7 +306,7 @@ class DatabaseManager:
                     VALUES (?, ?, ?, ?, ?)
                 ''', (user_id, topic, subtopic, score, total_questions))
                 conn.commit()
-                logger.info(f"💾 Saved progress for user {user_id}: {score}/{total_questions}")
+                logger.info(f"Saved progress for user {user_id}: {score}/{total_questions}")
         except sqlite3.Error as e:
             logger.error(f"Error saving progress: {e}")
     
@@ -380,27 +374,19 @@ class FileManager:
         """Dynamically list all available subtopics for a topic"""
         topic_path = os.path.join(CONFIG["data_dir"], topic)
         
-        logger.info(f"🔍 Looking for subtopics in: {topic_path}")
-        
         if not os.path.exists(topic_path):
-            logger.warning(f"❌ Topic path does not exist: {topic_path}")
-            # Try to create it
-            os.makedirs(topic_path, exist_ok=True)
-            logger.info(f"📁 Created topic directory: {topic_path}")
+            logger.warning(f"Topic path does not exist: {topic_path}")
             return []
         
         # Get all CSV files and return their names without extension
         subtopics = []
-        try:
-            for file in os.listdir(topic_path):
-                if file.endswith('.csv') and not file.startswith('.'):
-                    # Return the filename without .csv extension
-                    subtopic_name = file[:-4]
-                    subtopics.append(subtopic_name)
-        except Exception as e:
-            logger.error(f"❌ Error listing subtopics for {topic}: {e}")
+        for file in os.listdir(topic_path):
+            if file.endswith('.csv') and not file.startswith('.'):
+                # Return the filename without .csv extension
+                subtopic_name = file[:-4]
+                subtopics.append(subtopic_name)
         
-        logger.info(f"📚 Found {len(subtopics)} subtopics for {topic}: {subtopics}")
+        logger.info(f"Found {len(subtopics)} subtopics for {topic}: {subtopics}")
         return sorted(subtopics)
     
     @staticmethod
@@ -410,15 +396,15 @@ class FileManager:
         filename = f"{subtopic}.csv"
         file_path = os.path.join(CONFIG["data_dir"], topic, filename)
         
-        logger.info(f"📖 Loading questions from: {file_path}")
+        logger.info(f"Loading questions from: {file_path}")
         
         if not os.path.exists(file_path):
-            logger.error(f"❌ Question file not found: {file_path}")
-            # List available files for debugging
+            logger.error(f"Question file not found: {file_path}")
+            # Try to find the file with different case
             topic_path = os.path.join(CONFIG["data_dir"], topic)
             if os.path.exists(topic_path):
                 available_files = [f for f in os.listdir(topic_path) if f.endswith('.csv')]
-                logger.info(f"📋 Available files in {topic}: {available_files}")
+                logger.info(f"Available files in {topic}: {available_files}")
             
             return []
         
@@ -446,7 +432,7 @@ class FileManager:
                     
                     # Validate correct answer format
                     if correct not in ['A', 'B', 'C', 'D']:
-                        logger.warning(f"⚠️ Invalid correct answer in row {i}: '{correct}'")
+                        logger.warning(f"Invalid correct answer in row {i}: '{correct}'")
                         continue
                     
                     # Sanitize all text
@@ -464,13 +450,13 @@ class FileManager:
                     })
                     valid_questions += 1
             
-            logger.info(f"✅ Loaded {valid_questions} valid questions from {row_count} rows in {topic}/{subtopic}")
+            logger.info(f"Loaded {valid_questions} valid questions from {row_count} rows")
             
             if valid_questions == 0:
-                logger.warning(f"⚠️ No valid questions found in {file_path}")
+                logger.warning(f"No valid questions found in {file_path}")
                 
         except Exception as e:
-            logger.error(f"❌ Error loading questions from {file_path}: {e}")
+            logger.error(f"Error loading questions from {file_path}: {e}")
         
         return questions
 
@@ -480,12 +466,12 @@ class FileManager:
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error = context.error
-    logger.error(f"🚨 Exception while handling an update: {error}", exc_info=error)
+    logger.error(f"Exception while handling an update: {error}", exc_info=error)
     
     if isinstance(error, BadRequest):
         error_msg = str(error).lower()
         if any(msg in error_msg for msg in ["query is too old", "button_data_invalid", "message is not modified"]):
-            logger.warning("⚠️ Ignoring common Telegram error")
+            logger.warning("Ignoring common Telegram error")
             return
     
     try:
@@ -496,10 +482,10 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=None
             )
     except Exception as e:
-        logger.error(f"❌ Could not send error message: {e}")
+        logger.error(f"Could not send error message: {e}")
 
 # ==============================
-# BOT HANDLERS (Same as before, but optimized)
+# BOT HANDLERS
 # ==============================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -513,11 +499,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not topics:
         await update.message.reply_text(
             "📝 No quiz topics available.\n\n"
-            "The bot is creating sample data automatically...\n"
+            "The bot will create sample data automatically on first run. "
             "Please wait a moment and try /start again."
         )
-        # Force create data structure
-        DataManager.ensure_data_structure()
         return
     
     keyboard = []
@@ -530,9 +514,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(
         "🎯 Welcome to Dynamic Quiz Bot!\n\n"
-        "📚 Auto-detected topics and quizzes\n"
-        "🔄 Dynamic file discovery\n"
-        "⏰ No time limits\n\n"
+        "📚 Features:\n"
+        "• Multiple choice questions\n" 
+        "• Shuffled answer choices\n"
+        "• No time limits\n"
+        "• Progress tracking\n"
+        "• Dynamic topic discovery\n\n"
         "Select a subject to begin:",
         parse_mode=None,
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -542,13 +529,21 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command"""
     help_text = (
         "🤖 Dynamic Quiz Bot Help\n\n"
-        "📚 Commands:\n"
-        "• /start - Start bot & see topics\n"
-        "• /stats - Your statistics\n"
-        "• /refresh - Refresh topics\n"
-        "• /cancel - Cancel quiz\n"
-        "• /help - This message\n\n"
-        "🔄 The bot automatically detects\nnew CSV files in the data folder!"
+        "📚 Available Commands:\n"
+        "• /start - Start the bot and select quiz\n"
+        "• /stats - View your quiz statistics\n"
+        "• /refresh - Manually refresh available topics\n"
+        "• /cancel - Cancel current quiz\n"
+        "• /help - Show this help message\n\n"
+        "🎯 How to Use:\n"
+        "1. Use /start to begin\n"
+        "2. Select a subject and topic\n"
+        "3. Answer questions at your own pace\n"
+        "4. View your results at the end\n\n"
+        "🔄 Dynamic Features:\n"
+        "• Automatically detects new CSV files\n"
+        "• Creates sample data if none exists\n"
+        "• Works with any properly formatted CSV"
     )
     
     await update.message.reply_text(help_text, parse_mode=None)
@@ -565,10 +560,10 @@ async def refresh_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         await update.message.reply_text(
-            "🔄 No topics found. Creating sample data...",
+            "❌ No topics found. Creating sample data...",
             parse_mode=None
         )
-        DataManager.ensure_data_structure()
+        DataManager.initialize_data_structure()
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /stats command"""
@@ -598,10 +593,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await query.answer()
     except BadRequest:
-        pass
+        pass  # Ignore expired queries
     
     callback_data = query.data
-    logger.info(f"🔄 Received callback: {callback_data}")
+    logger.info(f"Received callback: {callback_data}")
     
     try:
         if callback_data == "refresh_topics":
@@ -610,7 +605,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         parsed = CallbackManager.parse_callback_data(callback_data)
         if not parsed:
-            await query.edit_message_text("❌ Invalid selection. Use /start to begin again.", parse_mode=None)
+            await query.edit_message_text("❌ Invalid selection. Please use /start to begin again.", parse_mode=None)
             return
         
         if parsed["type"] == "main_menu":
@@ -621,7 +616,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await handle_subtopic_selection(update, context, parsed["topic"], parsed["subtopic"])
                 
     except Exception as e:
-        logger.error(f"❌ Error handling callback: {e}")
+        logger.error(f"Error handling callback: {e}")
         await query.edit_message_text("❌ An error occurred. Please try again.", parse_mode=None)
 
 async def handle_refresh_topics(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -637,10 +632,10 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not topics:
         await query.edit_message_text(
-            "🔄 No topics found. Creating sample data...",
+            "❌ No topics available. Creating sample data...",
             parse_mode=None
         )
-        DataManager.ensure_data_structure()
+        DataManager.initialize_data_structure()
         topics = FileManager.list_topics()
     
     keyboard = []
@@ -690,15 +685,16 @@ async def handle_subtopic_selection(update: Update, context: ContextTypes.DEFAUL
     """Handle subtopic selection and start quiz"""
     query = update.callback_query
     
-    logger.info(f"🚀 Starting quiz: {topic}/{subtopic}")
+    logger.info(f"Loading questions for {topic}/{subtopic}")
     questions = FileManager.load_questions(topic, subtopic)
     
     if not questions:
         await query.edit_message_text(
             f"❌ No questions found for {topic.title()} - {subtopic}\n\n"
-            f"The bot will work with any CSV file in:\n"
-            f"data/{topic}/your_file.csv\n\n"
-            f"Format: question,optionA,optionB,optionC,optionD,correct",
+            f"Please check:\n"
+            f"• File exists: data/{topic}/{subtopic}.csv\n"
+            f"• File has proper CSV format\n"
+            f"• Questions have 6 columns",
             parse_mode=None
         )
         return
@@ -718,17 +714,16 @@ async def handle_subtopic_selection(update: Update, context: ContextTypes.DEFAUL
     
     await query.edit_message_text(
         f"🎯 Starting {topic.title()} - {subtopic} quiz!\n\n"
-        f"• Questions: {len(questions)}\n"
-        f"• Choices are shuffled\n"
-        f"• No time limits\n\n"
+        f"• Total questions: {len(questions)}\n"
+        f"• Answer choices are shuffled\n"
+        f"• No time limits\n"
+        f"• Take your time to think!\n\n"
         f"Good luck! 🍀",
         parse_mode=None
     )
     
     await asyncio.sleep(2)
     await send_next_question(update, context)
-
-# ... [Keep the rest of the functions exactly the same: send_next_question, handle_poll_answer, finish_quiz, cancel_command] ...
 
 async def send_next_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send the next question in the quiz"""
@@ -765,10 +760,10 @@ async def send_next_question(update: Update, context: ContextTypes.DEFAULT_TYPE)
         user_data["active_poll_id"] = message.poll.id
         user_data["poll_message_id"] = message.message_id
         
-        logger.info(f"📤 Sent question {current_index + 1} to user {chat_id}")
+        logger.info(f"Sent question {current_index + 1} to user {chat_id}")
         
     except Exception as e:
-        logger.error(f"❌ Error sending question {current_index + 1}: {e}")
+        logger.error(f"Error sending question {current_index + 1}: {e}")
         user_data["current_question"] += 1
         await asyncio.sleep(2)
         await send_next_question(update, context)
@@ -805,7 +800,7 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_to_message_id=user_data.get("poll_message_id")
         )
     except Exception as e:
-        logger.error(f"❌ Error sending feedback: {e}")
+        logger.error(f"Error sending feedback: {e}")
     
     try:
         await context.bot.stop_poll(
@@ -813,7 +808,7 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
             message_id=user_data.get("poll_message_id")
         )
     except Exception as e:
-        logger.warning(f"⚠️ Could not stop poll: {e}")
+        logger.warning(f"Could not stop poll: {e}")
     
     user_data["current_question"] += 1
     user_data["active_poll_id"] = None
@@ -870,7 +865,7 @@ async def finish_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     user_data.clear()
-    logger.info(f"✅ Quiz completed for user {user.id}: {correct}/{total} ({percentage:.1f}%)")
+    logger.info(f"Quiz completed for user {user.id}: {correct}/{total} ({percentage:.1f}%)")
 
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /cancel command"""
@@ -884,7 +879,7 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     message_id=user_data.get("poll_message_id")
                 )
         except Exception as e:
-            logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
+            logger.warning(f"Could not stop poll during cancel: {e}")
         
         user_data.clear()
         await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
@@ -892,19 +887,18 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("ℹ️ No active quiz to cancel.")
 
 # ==============================
-# MAIN FUNCTION - RAILWAY OPTIMIZED
+# MAIN FUNCTION
 # ==============================
 
 def main():
-    """Start the bot - Railway optimized"""
+    """Start the bot"""
     if not TOKEN:
-        logger.error("❌ No bot token provided. Set TELEGRAM_BOT_TOKEN environment variable.")
+        logger.error("No bot token provided. Set TELEGRAM_BOT_TOKEN environment variable.")
         return
     
-    # Force initialize data structure before anything else
-    logger.info("🚀 Initializing Railway-optimized bot...")
-    logger.info("📁 Creating data structure...")
-    DataManager.ensure_data_structure()
+    # Initialize dynamic data structure
+    logger.info("🔄 Initializing dynamic data structure...")
+    DataManager.initialize_data_structure()
     
     try:
         application = Application.builder().token(TOKEN).build()
@@ -920,8 +914,8 @@ def main():
         
         application.add_error_handler(error_handler)
         
-        # Start the bot with comprehensive logging
-        logger.info("🤖 Dynamic Quiz Bot is starting on Railway...")
+        # Start the bot
+        logger.info("🤖 Dynamic Quiz Bot is starting...")
         logger.info("✅ Token loaded from environment variable")
         
         topics = FileManager.list_topics()
@@ -930,11 +924,9 @@ def main():
             for topic in topics:
                 subtopics = FileManager.list_subtopics(topic)
                 if subtopics:
-                    logger.info(f"   📂 {topic}: {len(subtopics)} subtopics")
-                else:
-                    logger.warning(f"   ⚠️ {topic}: No subtopics found")
+                    logger.info(f"   {topic}: {len(subtopics)} subtopics")
         else:
-            logger.error("❌ CRITICAL: No topics found after initialization!")
+            logger.warning("⚠️ No quiz topics found after initialization")
         
         logger.info("🔄 Starting bot polling...")
         application.run_polling(
@@ -945,8 +937,35 @@ def main():
         )
         
     except Exception as e:
-        logger.error(f"❌ Failed to start bot: {e}")
+        logger.error(f"Failed to start bot: {e}")
         print(f"❌ Bot failed to start: {e}")
+
+async def debug_files(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Debug command to see what files exist"""
+    data_dir = CONFIG["data_dir"]
+    
+    debug_info = f"🔍 File System Debug:\n\n"
+    debug_info += f"Data directory: {data_dir}\n"
+    debug_info += f"Directory exists: {os.path.exists(data_dir)}\n\n"
+    
+    if os.path.exists(data_dir):
+        items = os.listdir(data_dir)
+        debug_info += f"Items in data directory ({len(items)}):\n"
+        for item in items:
+            item_path = os.path.join(data_dir, item)
+            debug_info += f"• {item} (dir: {os.path.isdir(item_path)})\n"
+            
+            if os.path.isdir(item_path):
+                sub_items = os.listdir(item_path)
+                debug_info += f"  └── Files: {sub_items}\n"
+    else:
+        debug_info += "❌ Data directory does not exist!\n"
+    
+    await update.message.reply_text(debug_info, parse_mode=None)
+
+# Add to main():
+
 
 if __name__ == "__main__":
     main()
+    application.add_handler(CommandHandler("debug", debug_files))
