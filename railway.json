@@ -10,8 +10,8 @@
   },
   "[[mounts]]": [
     {
-      "source": "data",
-      "target": "data"
+      "source": "app/data",
+      "target": "app/data"
     }
   ]
 }
