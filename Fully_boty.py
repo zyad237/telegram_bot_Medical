@@ -940,32 +940,5 @@ def main():
         logger.error(f"Failed to start bot: {e}")
         print(f"❌ Bot failed to start: {e}")
 
-async def debug_files(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Debug command to see what files exist"""
-    data_dir = CONFIG["data_dir"]
-    
-    debug_info = f"🔍 File System Debug:\n\n"
-    debug_info += f"Data directory: {data_dir}\n"
-    debug_info += f"Directory exists: {os.path.exists(data_dir)}\n\n"
-    
-    if os.path.exists(data_dir):
-        items = os.listdir(data_dir)
-        debug_info += f"Items in data directory ({len(items)}):\n"
-        for item in items:
-            item_path = os.path.join(data_dir, item)
-            debug_info += f"• {item} (dir: {os.path.isdir(item_path)})\n"
-            
-            if os.path.isdir(item_path):
-                sub_items = os.listdir(item_path)
-                debug_info += f"  └── Files: {sub_items}\n"
-    else:
-        debug_info += "❌ Data directory does not exist!\n"
-    
-    await update.message.reply_text(debug_info, parse_mode=None)
-
-# Add to main():
-
-
 if __name__ == "__main__":
     main()
-    application.add_handler(CommandHandler("debug", debug_files))
