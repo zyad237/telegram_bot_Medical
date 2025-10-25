@@ -121,9 +121,9 @@ class DataManager:
         data_dir = CONFIG["data_dir"]
         if not os.path.exists(data_dir):
             return False
-        
+    
         new_files_found = False
-        
+    
         for topic in os.listdir(data_dir):
             topic_path = os.path.join(data_dir, topic)
             if os.path.isdir(topic_path):
@@ -131,7 +131,8 @@ class DataManager:
                     if file.endswith('.csv') and not file.startswith('.'):
                         file_path = os.path.join(topic_path, file)
                         logger.debug(f"Found CSV file: {topic}/{file}")
-        
+                        new_files_found = True  # This line is missing!
+    
         return new_files_found
 
 # ==============================
