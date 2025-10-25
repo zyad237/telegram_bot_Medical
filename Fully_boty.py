@@ -39,10 +39,10 @@ if not TOKEN:
     exit(1)
 
 CONFIG = {
-    "data_dir": "data",
+    "data_dir": "app/data",
     "database_file": "quiz_bot.db",
-    "max_questions_per_quiz": 50,
-    "time_between_questions": 2,
+    "max_questions_per_quiz": 100,
+    "time_between_questions": 1,
 }
 
 # Initialize logging
