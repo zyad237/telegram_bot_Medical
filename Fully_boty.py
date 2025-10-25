@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Telegram Quiz Bot
-A robust, production-ready quiz bot for Telegram that sends multiple-choice questions
-from CSV files with shuffled answers and no time limits.
+Telegram Quiz Bot - Dynamic Version
+Automatically creates sample data and works with any CSV files added to the data folder.
 """
 
 import os
@@ -78,12 +77,131 @@ def sanitize_text(text: str) -> str:
         text = text.replace(char, f'\\{char}')
     
     # Remove any remaining problematic sequences
-    text = re.sub(r'\\+', r'\\', text)  # Fix multiple escapes
+    text = re.sub(r'\\+', r'\\', text)
     
     return text
 
 # ==============================
-# CALLBACK DATA MANAGER - UPDATED FOR ACTUAL FILENAMES
+# DYNAMIC DATA MANAGER
+# ==============================
+
+class DataManager:
+    """Manages dynamic data creation and file discovery"""
+    
+    @staticmethod
+    def initialize_data_structure():
+        """Initialize the data structure with sample data if empty"""
+        data_dir = CONFIG["data_dir"]
+        
+        # Create data directory
+        os.makedirs(data_dir, exist_ok=True)
+        
+        # Check if we have any topics
+        topics = DataManager.get_existing_topics()
+        
+        if not topics:
+            logger.info("No existing data found. Creating sample data structure...")
+            DataManager.create_sample_data()
+        else:
+            logger.info(f"Found existing topics: {topics}")
+    
+    @staticmethod
+    def get_existing_topics() -> List[str]:
+        """Get list of existing topics"""
+        data_dir = CONFIG["data_dir"]
+        if not os.path.exists(data_dir):
+            return []
+        
+        topics = [d for d in os.listdir(data_dir) 
+                 if os.path.isdir(os.path.join(data_dir, d)) and not d.startswith('.')]
+        return sorted(topics)
+    
+    @staticmethod
+    def create_sample_data():
+        """Create comprehensive sample data for demonstration"""
+        data_dir = CONFIG["data_dir"]
+        
+        # Sample topics and their questions
+        sample_data = {
+            "anatomy": [
+                {
+                    "filename": "Human Body Basics.csv",
+                    "questions": [
+                        ["What is the largest organ in the human body?", "Liver", "Skin", "Heart", "Lungs", "B"],
+                        ["How many bones are in the adult human body?", "196", "206", "216", "226", "B"],
+                        ["What carries oxygen in the blood?", "Platelets", "White blood cells", "Red blood cells", "Plasma", "C"]
+                    ]
+                },
+                {
+                    "filename": "Organ Systems.csv", 
+                    "questions": [
+                        ["Which system includes the heart and blood vessels?", "Nervous", "Circulatory", "Digestive", "Respiratory", "B"],
+                        ["What is the main function of the respiratory system?", "Blood circulation", "Oxygen exchange", "Food digestion", "Waste removal", "B"]
+                    ]
+                }
+            ],
+            "biology": [
+                {
+                    "filename": "Cell Biology.csv",
+                    "questions": [
+                        ["What is the powerhouse of the cell?", "Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus", "B"],
+                        ["What process do plants use to make food?", "Respiration", "Photosynthesis", "Digestion", "Fermentation", "B"]
+                    ]
+                }
+            ],
+            "general_knowledge": [
+                {
+                    "filename": "Science and Technology.csv",
+                    "questions": [
+                        ["What planet is known as the Red Planet?", "Venus", "Mars", "Jupiter", "Saturn", "B"],
+                        ["What is the chemical symbol for gold?", "Go", "Gd", "Au", "Ag", "C"]
+                    ]
+                }
+            ]
+        }
+        
+        for topic, subtopics in sample_data.items():
+            topic_dir = os.path.join(data_dir, topic)
+            os.makedirs(topic_dir, exist_ok=True)
+            
+            for subtopic_data in subtopics:
+                filename = subtopic_data["filename"]
+                questions = subtopic_data["questions"]
+                file_path = os.path.join(topic_dir, filename)
+                
+                # Only create if it doesn't exist
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8', newline='') as f:
+                        writer = csv.writer(f)
+                        for question_data in questions:
+                            writer.writerow(question_data)
+                    
+                    logger.info(f"Created sample file: {topic}/{filename}")
+        
+        logger.info("✅ Sample data creation completed!")
+    
+    @staticmethod
+    def scan_for_new_files():
+        """Scan for any new CSV files that were added manually"""
+        data_dir = CONFIG["data_dir"]
+        if not os.path.exists(data_dir):
+            return
+        
+        new_files_found = False
+        
+        for topic in os.listdir(data_dir):
+            topic_path = os.path.join(data_dir, topic)
+            if os.path.isdir(topic_path):
+                for file in os.listdir(topic_path):
+                    if file.endswith('.csv') and not file.startswith('.'):
+                        file_path = os.path.join(topic_path, file)
+                        # You could add additional validation here
+                        logger.debug(f"Found CSV file: {topic}/{file}")
+        
+        return new_files_found
+
+# ==============================
+# CALLBACK DATA MANAGER
 # ==============================
 
 class CallbackManager:
@@ -93,11 +211,10 @@ class CallbackManager:
     
     @staticmethod
     def sanitize_callback_text(text: str) -> str:
-        """Sanitize text for safe callback data - but keep it readable"""
-        # Replace spaces and special characters with underscores, but keep it readable
+        """Sanitize text for safe callback data"""
         sanitized = re.sub(r'[^\w\s-]', '', text)
         sanitized = re.sub(r'[-\s]+', '_', sanitized)
-        return sanitized.lower()[:20]  # Keep it reasonable length
+        return sanitized.lower()[:20]
     
     @staticmethod
     def create_topic_callback(topic: str) -> str:
@@ -109,9 +226,7 @@ class CallbackManager:
     def create_subtopic_callback(topic: str, subtopic: str) -> str:
         """Create safe subtopic callback data using actual subtopic name"""
         safe_topic = CallbackManager.sanitize_callback_text(topic)
-        # Use the actual subtopic name for callback
-        safe_subtopic = subtopic  # Don't sanitize the subtopic - use as is for file lookup
-        return f"s:{safe_topic}:{safe_subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+        return f"s:{safe_topic}:{subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
     def parse_callback_data(callback_data: str) -> Optional[Dict]:
@@ -122,12 +237,9 @@ class CallbackManager:
             elif callback_data.startswith("t:"):
                 return {"type": "topic", "topic": callback_data[2:]}
             elif callback_data.startswith("s:"):
-                parts = callback_data.split(":")
+                parts = callback_data.split(":", 2)  # Split only twice to preserve subtopic
                 if len(parts) >= 3:
-                    # Join back any additional parts in case subtopic had colons
-                    topic = parts[1]
-                    subtopic = ":".join(parts[2:])  # This preserves the actual filename
-                    return {"type": "subtopic", "topic": topic, "subtopic": subtopic}
+                    return {"type": "subtopic", "topic": parts[1], "subtopic": parts[2]}
         except Exception as e:
             logger.error(f"Error parsing callback data: {e}")
         return None
@@ -254,60 +366,46 @@ class QuizManager:
 class FileManager:
     @staticmethod
     def list_topics() -> List[str]:
-        data_dir = CONFIG["data_dir"]
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
-            logger.info(f"Created data directory: {data_dir}")
-            return []
-        
-        topics = [d for d in os.listdir(data_dir) 
-                 if os.path.isdir(os.path.join(data_dir, d)) and not d.startswith('.')]
-        logger.info(f"Found topics: {topics}")
-        return sorted(topics)
+        """Dynamically list all available topics"""
+        return DataManager.get_existing_topics()
     
     @staticmethod
     def list_subtopics(topic: str) -> List[str]:
-        """List available subtopics for a topic - returns ACTUAL filenames"""
+        """Dynamically list all available subtopics for a topic"""
         topic_path = os.path.join(CONFIG["data_dir"], topic)
-        logger.info(f"Looking for subtopics in: {topic_path}")
         
         if not os.path.exists(topic_path):
             logger.warning(f"Topic path does not exist: {topic_path}")
             return []
         
-        all_files = os.listdir(topic_path)
-        logger.info(f"All files in {topic_path}: {all_files}")
+        # Get all CSV files and return their names without extension
+        subtopics = []
+        for file in os.listdir(topic_path):
+            if file.endswith('.csv') and not file.startswith('.'):
+                # Return the filename without .csv extension
+                subtopic_name = file[:-4]
+                subtopics.append(subtopic_name)
         
-        # Return the actual CSV filenames (without .csv extension)
-        subtopics = [f[:-4] for f in all_files 
-                    if f.endswith('.csv') and not f.startswith('.')]
-        logger.info(f"Found subtopics for {topic}: {subtopics}")
+        logger.info(f"Found {len(subtopics)} subtopics for {topic}: {subtopics}")
         return sorted(subtopics)
     
     @staticmethod
     def load_questions(topic: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file using ACTUAL filename"""
-        # Use the actual subtopic name (which is the filename without .csv)
-        file_path = os.path.join(CONFIG["data_dir"], topic, f"{subtopic}.csv")
-        logger.info(f"Looking for questions at: {file_path}")
-        logger.info(f"File exists: {os.path.exists(file_path)}")
+        """Dynamically load questions from CSV file"""
+        # Reconstruct the filename (subtopic is the filename without .csv)
+        filename = f"{subtopic}.csv"
+        file_path = os.path.join(CONFIG["data_dir"], topic, filename)
+        
+        logger.info(f"Loading questions from: {file_path}")
         
         if not os.path.exists(file_path):
             logger.error(f"Question file not found: {file_path}")
-            # Try to find similar files (case-insensitive)
+            # Try to find the file with different case
             topic_path = os.path.join(CONFIG["data_dir"], topic)
             if os.path.exists(topic_path):
-                all_files = os.listdir(topic_path)
-                logger.info(f"Available files in {topic_path}: {all_files}")
-                # Try case-insensitive match
-                for file in all_files:
-                    if file.lower().endswith('.csv') and subtopic.lower() in file.lower():
-                        logger.info(f"Found similar file: {file}")
-                        file_path = os.path.join(topic_path, file)
-                        break
+                available_files = [f for f in os.listdir(topic_path) if f.endswith('.csv')]
+                logger.info(f"Available files in {topic}: {available_files}")
             
-        if not os.path.exists(file_path):
-            logger.error(f"Question file not found after search: {file_path}")
             return []
         
         questions = []
@@ -337,7 +435,7 @@ class FileManager:
                         logger.warning(f"Invalid correct answer in row {i}: '{correct}'")
                         continue
                     
-                    # Sanitize all text to prevent Markdown errors
+                    # Sanitize all text
                     question = sanitize_text(question)
                     opt_a = sanitize_text(opt_a)
                     opt_b = sanitize_text(opt_b)
@@ -352,24 +450,15 @@ class FileManager:
                     })
                     valid_questions += 1
             
-            logger.info(f"Processed {row_count} rows, found {valid_questions} valid questions")
+            logger.info(f"Loaded {valid_questions} valid questions from {row_count} rows")
             
             if valid_questions == 0:
                 logger.warning(f"No valid questions found in {file_path}")
-                # Debug: print first few rows to help diagnose
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    reader = csv.reader(f)
-                    for i, row in enumerate(reader, 1):
-                        if i <= 5:  # Show first 5 rows
-                            logger.info(f"Row {i} sample: {row}")
-                        else:
-                            break
-            
-            return questions
-            
+                
         except Exception as e:
             logger.error(f"Error loading questions from {file_path}: {e}")
-            return []
+        
+        return questions
 
 # ==============================
 # ERROR HANDLER
@@ -379,20 +468,12 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error = context.error
     logger.error(f"Exception while handling an update: {error}", exc_info=error)
     
-    # Handle specific errors gracefully
     if isinstance(error, BadRequest):
         error_msg = str(error).lower()
-        if "query is too old" in error_msg or "button_data_invalid" in error_msg:
-            logger.warning("Ignoring expired callback query")
-            return
-        elif "message is not modified" in error_msg:
-            logger.warning("Message not modified - ignoring")
-            return
-        elif "can't parse entities" in error_msg:
-            logger.warning("Markdown parsing error - using plain text")
+        if any(msg in error_msg for msg in ["query is too old", "button_data_invalid", "message is not modified"]):
+            logger.warning("Ignoring common Telegram error")
             return
     
-    # Try to notify user
     try:
         if update and update.effective_chat:
             await context.bot.send_message(
@@ -404,7 +485,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Could not send error message: {e}")
 
 # ==============================
-# BOT HANDLERS - UPDATED FOR ACTUAL FILENAMES
+# BOT HANDLERS
 # ==============================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -412,15 +493,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     db.update_user(user.id, user.username, user.first_name, user.last_name)
     
-    # Clear any existing quiz state
     context.user_data.clear()
     
     topics = FileManager.list_topics()
     if not topics:
         await update.message.reply_text(
-            "📝 No quiz topics available yet.\n\n"
-            "To add quizzes, create folders in the 'data' directory with CSV files.\n"
-            "Each CSV should have: question,optionA,optionB,optionC,optionD,correct_answer"
+            "📝 No quiz topics available.\n\n"
+            "The bot will create sample data automatically on first run. "
+            "Please wait a moment and try /start again."
         )
         return
     
@@ -429,13 +509,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         callback_data = CallbackManager.create_topic_callback(topic)
         keyboard.append([InlineKeyboardButton(topic.title(), callback_data=callback_data)])
     
+    # Add refresh button
+    keyboard.append([InlineKeyboardButton("🔄 Refresh Topics", callback_data="refresh_topics")])
+    
     await update.message.reply_text(
-        "🎯 Welcome to Quiz Bot!\n\n"
+        "🎯 Welcome to Dynamic Quiz Bot!\n\n"
         "📚 Features:\n"
-        "• Multiple choice questions\n"
+        "• Multiple choice questions\n" 
         "• Shuffled answer choices\n"
         "• No time limits\n"
-        "• Progress tracking\n\n"
+        "• Progress tracking\n"
+        "• Dynamic topic discovery\n\n"
         "Select a subject to begin:",
         parse_mode=None,
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -444,10 +528,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command"""
     help_text = (
-        "🤖 Quiz Bot Help\n\n"
+        "🤖 Dynamic Quiz Bot Help\n\n"
         "📚 Available Commands:\n"
         "• /start - Start the bot and select quiz\n"
         "• /stats - View your quiz statistics\n"
+        "• /refresh - Manually refresh available topics\n"
         "• /cancel - Cancel current quiz\n"
         "• /help - Show this help message\n\n"
         "🎯 How to Use:\n"
@@ -455,14 +540,30 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "2. Select a subject and topic\n"
         "3. Answer questions at your own pace\n"
         "4. View your results at the end\n\n"
-        "📝 Quiz Format:\n"
-        "• Questions have 4 multiple choices\n"
-        "• Answers are shuffled for each question\n"
-        "• No time limits - take your time!\n"
-        "• Your progress is automatically saved"
+        "🔄 Dynamic Features:\n"
+        "• Automatically detects new CSV files\n"
+        "• Creates sample data if none exists\n"
+        "• Works with any properly formatted CSV"
     )
     
     await update.message.reply_text(help_text, parse_mode=None)
+
+async def refresh_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Manual refresh of available topics"""
+    DataManager.scan_for_new_files()
+    topics = FileManager.list_topics()
+    
+    if topics:
+        await update.message.reply_text(
+            f"✅ Refreshed! Found {len(topics)} topics.\nUse /start to see them.",
+            parse_mode=None
+        )
+    else:
+        await update.message.reply_text(
+            "❌ No topics found. Creating sample data...",
+            parse_mode=None
+        )
+        DataManager.initialize_data_structure()
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /stats command"""
@@ -489,21 +590,21 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle all callback queries"""
     query = update.callback_query
     
-    # Safely answer callback first
     try:
         await query.answer()
-    except BadRequest as e:
-        if "query is too old" not in str(e).lower():
-            logger.error(f"Error answering callback: {e}")
-        return
+    except BadRequest:
+        pass  # Ignore expired queries
     
     callback_data = query.data
     logger.info(f"Received callback: {callback_data}")
     
     try:
+        if callback_data == "refresh_topics":
+            await handle_refresh_topics(update, context)
+            return
+        
         parsed = CallbackManager.parse_callback_data(callback_data)
         if not parsed:
-            logger.warning(f"Unknown callback data: {callback_data}")
             await query.edit_message_text("❌ Invalid selection. Please use /start to begin again.", parse_mode=None)
             return
         
@@ -518,15 +619,31 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error handling callback: {e}")
         await query.edit_message_text("❌ An error occurred. Please try again.", parse_mode=None)
 
+async def handle_refresh_topics(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle topic refresh"""
+    query = update.callback_query
+    DataManager.scan_for_new_files()
+    await handle_main_menu(update, context)
+
 async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle return to main menu"""
     query = update.callback_query
     topics = FileManager.list_topics()
     
+    if not topics:
+        await query.edit_message_text(
+            "❌ No topics available. Creating sample data...",
+            parse_mode=None
+        )
+        DataManager.initialize_data_structure()
+        topics = FileManager.list_topics()
+    
     keyboard = []
     for topic in topics:
         callback_data = CallbackManager.create_topic_callback(topic)
         keyboard.append([InlineKeyboardButton(topic.title(), callback_data=callback_data)])
+    
+    keyboard.append([InlineKeyboardButton("🔄 Refresh Topics", callback_data="refresh_topics")])
     
     try:
         await query.edit_message_text(
@@ -549,9 +666,7 @@ async def handle_topic_selection(update: Update, context: ContextTypes.DEFAULT_T
     
     keyboard = []
     for subtopic in subtopics:
-        # Use the ACTUAL subtopic name (which is the filename without .csv)
         callback_data = CallbackManager.create_subtopic_callback(topic, subtopic)
-        # Display the actual filename as the button text
         keyboard.append([InlineKeyboardButton(subtopic, callback_data=callback_data)])
     
     keyboard.append([InlineKeyboardButton("« Back to Subjects", callback_data="main_menu")])
@@ -574,23 +689,19 @@ async def handle_subtopic_selection(update: Update, context: ContextTypes.DEFAUL
     questions = FileManager.load_questions(topic, subtopic)
     
     if not questions:
-        logger.error(f"No questions loaded for {topic}/{subtopic}")
         await query.edit_message_text(
             f"❌ No questions found for {topic.title()} - {subtopic}\n\n"
             f"Please check:\n"
-            f"• CSV file exists: data/{topic}/{subtopic}.csv\n"
-            f"• File has proper format\n"
-            f"• Questions have 6 columns: question, A, B, C, D, correct_answer\n"
-            f"• Correct answers are A, B, C, or D",
+            f"• File exists: data/{topic}/{subtopic}.csv\n"
+            f"• File has proper CSV format\n"
+            f"• Questions have 6 columns",
             parse_mode=None
         )
         return
     
-    # Limit questions if configured
     if len(questions) > CONFIG["max_questions_per_quiz"]:
         questions = questions[:CONFIG["max_questions_per_quiz"]]
     
-    # Initialize quiz state
     context.user_data.update({
         "quiz_active": True,
         "questions": questions,
@@ -599,7 +710,6 @@ async def handle_subtopic_selection(update: Update, context: ContextTypes.DEFAUL
         "topic": topic,
         "subtopic": subtopic,
         "chat_id": query.message.chat_id,
-        "start_time": datetime.now().isoformat()
     })
     
     await query.edit_message_text(
@@ -630,17 +740,14 @@ async def send_next_question(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await finish_quiz(update, context)
         return
     
-    # Get and shuffle current question
     original_question = questions[current_index]
     shuffled_question = QuizManager.shuffle_choices(original_question)
     user_data["current_shuffled"] = shuffled_question
     
-    # Create question text with progress (no Markdown)
     progress = f"Question {current_index + 1}/{len(questions)}\n\n"
     question_text = progress + shuffled_question["question"]
     
     try:
-        # Send poll (no time limit - stays open until answered)
         message = await context.bot.send_poll(
             chat_id=chat_id,
             question=question_text,
@@ -650,7 +757,6 @@ async def send_next_question(update: Update, context: ContextTypes.DEFAULT_TYPE)
             is_anonymous=False,
         )
         
-        # Store poll information
         user_data["active_poll_id"] = message.poll.id
         user_data["poll_message_id"] = message.message_id
         
@@ -658,7 +764,6 @@ async def send_next_question(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
     except Exception as e:
         logger.error(f"Error sending question {current_index + 1}: {e}")
-        # Skip to next question on error
         user_data["current_question"] += 1
         await asyncio.sleep(2)
         await send_next_question(update, context)
@@ -668,34 +773,26 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     poll_answer = update.poll_answer
     user_data = context.user_data
     
-    # Validate this is our active poll
     if user_data.get("active_poll_id") != poll_answer.poll_id:
-        logger.warning(f"Received answer for unknown poll: {poll_answer.poll_id}")
         return
     
     if not user_data.get("quiz_active"):
         return
     
-    # Get current question data
     shuffled_question = user_data.get("current_shuffled")
     if not shuffled_question:
-        logger.error("No shuffled question data found")
         return
     
-    # Check answer
     user_answer = poll_answer.option_ids[0] if poll_answer.option_ids else None
     is_correct = user_answer == shuffled_question["correct_index"]
     
     if is_correct:
         user_data["correct_answers"] += 1
         feedback = "✅ Correct! Well done!"
-        logger.info(f"User answered correctly! Score: {user_data['correct_answers']}")
     else:
         correct_letter = shuffled_question["shuffled_correct_letter"]
         feedback = f"❌ Incorrect. The correct answer was {correct_letter}"
-        logger.info(f"User answered incorrectly. Correct was: {correct_letter}")
     
-    # Send immediate feedback
     try:
         await context.bot.send_message(
             chat_id=user_data["chat_id"],
@@ -705,17 +802,14 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except Exception as e:
         logger.error(f"Error sending feedback: {e}")
     
-    # Stop the poll to prevent multiple answers
     try:
         await context.bot.stop_poll(
             chat_id=user_data["chat_id"],
             message_id=user_data.get("poll_message_id")
         )
-        logger.info(f"Stopped poll for question {user_data['current_question'] + 1}")
     except Exception as e:
         logger.warning(f"Could not stop poll: {e}")
     
-    # Clean up and move to next question
     user_data["current_question"] += 1
     user_data["active_poll_id"] = None
     user_data["poll_message_id"] = None
@@ -738,7 +832,6 @@ async def finish_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total = len(user_data["questions"])
     percentage = (correct / total) * 100 if total > 0 else 0
     
-    # Determine performance message
     if percentage >= 90:
         performance = "🎉 Outstanding! You're a quiz master! 🏆"
     elif percentage >= 75:
@@ -748,7 +841,6 @@ async def finish_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         performance = "📚 Keep studying! You'll get better! 💪"
     
-    # Save progress to database
     db.save_user_progress(
         user_id=user.id,
         topic=user_data["topic"],
@@ -757,7 +849,6 @@ async def finish_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
         total_questions=total
     )
     
-    # Send results (plain text to avoid formatting issues)
     results_text = (
         f"🎯 Quiz Completed!\n\n"
         f"{performance}\n\n"
@@ -773,7 +864,6 @@ async def finish_quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=None
     )
     
-    # Clear quiz state
     user_data.clear()
     logger.info(f"Quiz completed for user {user.id}: {correct}/{total} ({percentage:.1f}%)")
 
@@ -782,7 +872,6 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = context.user_data
     
     if user_data.get("quiz_active"):
-        # Stop active poll if exists
         try:
             if user_data.get("active_poll_id"):
                 await context.bot.stop_poll(
@@ -803,50 +892,42 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Start the bot"""
-    # Validate configuration
     if not TOKEN:
         logger.error("No bot token provided. Set TELEGRAM_BOT_TOKEN environment variable.")
         return
     
-    # Create necessary directories
-    os.makedirs(CONFIG["data_dir"], exist_ok=True)
+    # Initialize dynamic data structure
+    logger.info("🔄 Initializing dynamic data structure...")
+    DataManager.initialize_data_structure()
     
     try:
-        # Initialize application with modern approach
         application = Application.builder().token(TOKEN).build()
         
         # Add handlers
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(CommandHandler("stats", stats_command))
+        application.add_handler(CommandHandler("refresh", refresh_command))
         application.add_handler(CommandHandler("cancel", cancel_command))
         application.add_handler(CallbackQueryHandler(handle_callback))
         application.add_handler(PollAnswerHandler(handle_poll_answer))
         
-        # Add error handler
         application.add_error_handler(error_handler)
         
         # Start the bot
-        logger.info("🤖 Quiz Bot is starting...")
+        logger.info("🤖 Dynamic Quiz Bot is starting...")
         logger.info("✅ Token loaded from environment variable")
-        logger.info(f"📁 Data directory: {os.path.abspath(CONFIG['data_dir'])}")
-        logger.info(f"💾 Database file: {CONFIG['database_file']}")
         
-        # List available topics and subtopics with actual filenames
         topics = FileManager.list_topics()
         if topics:
             logger.info(f"📚 Available topics: {', '.join(topics)}")
-            # Log subtopics for each topic
             for topic in topics:
                 subtopics = FileManager.list_subtopics(topic)
                 if subtopics:
-                    logger.info(f"   {topic}: {', '.join(subtopics)}")
-                else:
-                    logger.info(f"   {topic}: No CSV files found")
+                    logger.info(f"   {topic}: {len(subtopics)} subtopics")
         else:
-            logger.warning("⚠️ No quiz topics found. Add CSV files to the data directory.")
+            logger.warning("⚠️ No quiz topics found after initialization")
         
-        # Start polling with modern approach
         logger.info("🔄 Starting bot polling...")
         application.run_polling(
             allowed_updates=Update.ALL_TYPES,
