@@ -117,7 +117,7 @@ class DataManager:
         
         # Comprehensive sample data covering multiple topics
         sample_data = {
-            "anatomy": {
+            "ana": {
                 "Human Body Basics.csv": [
                     ["What is the largest organ in the human body?", "Liver", "Skin", "Heart", "Lungs", "B"],
                     ["How many bones are in the adult human body?", "196", "206", "216", "226", "B"],
