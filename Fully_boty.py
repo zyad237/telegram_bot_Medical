@@ -39,7 +39,7 @@ if not TOKEN:
     exit(1)
 
 CONFIG = {
-    "data_dir": "app/data",  # Changed from "app/data" to just "data"
+    "data_dir": "data",  # Changed from "app/data" to just "data"
     "database_file": "quiz_bot.db",
     "max_questions_per_quiz": 100,
     "time_between_questions": 1,
