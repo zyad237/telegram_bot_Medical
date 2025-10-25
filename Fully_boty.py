@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Telegram Quiz Bot - Dynamic Version
-Automatically creates sample data and works with any CSV files added to the data folder.
+Works with CSV files in the data folder structure.
 """
 
 import os
@@ -39,7 +39,7 @@ if not TOKEN:
     exit(1)
 
 CONFIG = {
-    "data_dir": "app/data",
+    "data_dir": "data",  # Changed from "app/data" to just "data"
     "database_file": "quiz_bot.db",
     "max_questions_per_quiz": 100,
     "time_between_questions": 1,
@@ -86,28 +86,27 @@ def sanitize_text(text: str) -> str:
 # ==============================
 
 class DataManager:
-    """Manages dynamic data creation and file discovery"""
+    """Manages dynamic data discovery from data folder"""
     
     @staticmethod
     def initialize_data_structure():
-        """Initialize the data structure with sample data if empty"""
+        """Initialize the data structure - only creates directory if needed"""
         data_dir = CONFIG["data_dir"]
         
-        # Create data directory
+        # Create data directory if it doesn't exist
         os.makedirs(data_dir, exist_ok=True)
         
         # Check if we have any topics
         topics = DataManager.get_existing_topics()
         
-        if not topics:
-            logger.info("No existing data found. Creating sample data structure...")
-            DataManager.create_sample_data()
-        else:
+        if topics:
             logger.info(f"Found existing topics: {topics}")
+        else:
+            logger.warning("No quiz data found in data folder")
     
     @staticmethod
     def get_existing_topics() -> List[str]:
-        """Get list of existing topics"""
+        """Get list of existing topics from data folder"""
         data_dir = CONFIG["data_dir"]
         if not os.path.exists(data_dir):
             return []
@@ -117,75 +116,11 @@ class DataManager:
         return sorted(topics)
     
     @staticmethod
-    def create_sample_data():
-        """Create comprehensive sample data for demonstration"""
-        data_dir = CONFIG["data_dir"]
-        
-        # Sample topics and their questions
-        sample_data = {
-            "anatomy": [
-                {
-                    "filename": "Human Body Basics.csv",
-                    "questions": [
-                        ["What is the largest organ in the human body?", "Liver", "Skin", "Heart", "Lungs", "B"],
-                        ["How many bones are in the adult human body?", "196", "206", "216", "226", "B"],
-                        ["What carries oxygen in the blood?", "Platelets", "White blood cells", "Red blood cells", "Plasma", "C"]
-                    ]
-                },
-                {
-                    "filename": "Organ Systems.csv", 
-                    "questions": [
-                        ["Which system includes the heart and blood vessels?", "Nervous", "Circulatory", "Digestive", "Respiratory", "B"],
-                        ["What is the main function of the respiratory system?", "Blood circulation", "Oxygen exchange", "Food digestion", "Waste removal", "B"]
-                    ]
-                }
-            ],
-            "biology": [
-                {
-                    "filename": "Cell Biology.csv",
-                    "questions": [
-                        ["What is the powerhouse of the cell?", "Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus", "B"],
-                        ["What process do plants use to make food?", "Respiration", "Photosynthesis", "Digestion", "Fermentation", "B"]
-                    ]
-                }
-            ],
-            "general_knowledge": [
-                {
-                    "filename": "Science and Technology.csv",
-                    "questions": [
-                        ["What planet is known as the Red Planet?", "Venus", "Mars", "Jupiter", "Saturn", "B"],
-                        ["What is the chemical symbol for gold?", "Go", "Gd", "Au", "Ag", "C"]
-                    ]
-                }
-            ]
-        }
-        
-        for topic, subtopics in sample_data.items():
-            topic_dir = os.path.join(data_dir, topic)
-            os.makedirs(topic_dir, exist_ok=True)
-            
-            for subtopic_data in subtopics:
-                filename = subtopic_data["filename"]
-                questions = subtopic_data["questions"]
-                file_path = os.path.join(topic_dir, filename)
-                
-                # Only create if it doesn't exist
-                if not os.path.exists(file_path):
-                    with open(file_path, 'w', encoding='utf-8', newline='') as f:
-                        writer = csv.writer(f)
-                        for question_data in questions:
-                            writer.writerow(question_data)
-                    
-                    logger.info(f"Created sample file: {topic}/{filename}")
-        
-        logger.info("✅ Sample data creation completed!")
-    
-    @staticmethod
     def scan_for_new_files():
         """Scan for any new CSV files that were added manually"""
         data_dir = CONFIG["data_dir"]
         if not os.path.exists(data_dir):
-            return
+            return False
         
         new_files_found = False
         
@@ -195,7 +130,6 @@ class DataManager:
                 for file in os.listdir(topic_path):
                     if file.endswith('.csv') and not file.startswith('.'):
                         file_path = os.path.join(topic_path, file)
-                        # You could add additional validation here
                         logger.debug(f"Found CSV file: {topic}/{file}")
         
         return new_files_found
@@ -499,8 +433,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not topics:
         await update.message.reply_text(
             "📝 No quiz topics available.\n\n"
-            "The bot will create sample data automatically on first run. "
-            "Please wait a moment and try /start again."
+            "Please add CSV files to the data folder in the following structure:\n\n"
+            "data/\n"
+            "├── topic1/\n"
+            "│   ├── quiz1.csv\n"
+            "│   └── quiz2.csv\n"
+            "└── topic2/\n"
+            "    └── quiz1.csv\n\n"
+            "Use /refresh after adding files."
         )
         return
     
@@ -540,10 +480,11 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "2. Select a subject and topic\n"
         "3. Answer questions at your own pace\n"
         "4. View your results at the end\n\n"
-        "🔄 Dynamic Features:\n"
-        "• Automatically detects new CSV files\n"
-        "• Creates sample data if none exists\n"
-        "• Works with any properly formatted CSV"
+        "📁 Data Structure:\n"
+        "• Add CSV files to the 'data' folder\n"
+        "• Create subfolders for topics\n"
+        "• Each CSV should have: question, A, B, C, D, correct_answer\n"
+        "• Use /refresh to detect new files"
     )
     
     await update.message.reply_text(help_text, parse_mode=None)
@@ -560,10 +501,9 @@ async def refresh_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         await update.message.reply_text(
-            "❌ No topics found. Creating sample data...",
+            "❌ No topics found. Please add CSV files to the data folder.",
             parse_mode=None
         )
-        DataManager.initialize_data_structure()
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /stats command"""
@@ -632,11 +572,11 @@ async def handle_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not topics:
         await query.edit_message_text(
-            "❌ No topics available. Creating sample data...",
+            "❌ No topics available.\n\n"
+            "Please add CSV files to the data folder and use /refresh.",
             parse_mode=None
         )
-        DataManager.initialize_data_structure()
-        topics = FileManager.list_topics()
+        return
     
     keyboard = []
     for topic in topics:
@@ -690,11 +630,12 @@ async def handle_subtopic_selection(update: Update, context: ContextTypes.DEFAUL
     
     if not questions:
         await query.edit_message_text(
-            f"❌ No questions found for {topic.title()} - {subtopic}\n\n"
+            f"❌ No valid questions found for {topic.title()} - {subtopic}\n\n"
             f"Please check:\n"
             f"• File exists: data/{topic}/{subtopic}.csv\n"
             f"• File has proper CSV format\n"
-            f"• Questions have 6 columns",
+            f"• Questions have 6 columns (question, A, B, C, D, correct_answer)\n"
+            f"• Correct answer is A, B, C, or D",
             parse_mode=None
         )
         return
@@ -897,7 +838,7 @@ def main():
         return
     
     # Initialize dynamic data structure
-    logger.info("🔄 Initializing dynamic data structure...")
+    logger.info("🔄 Initializing data structure...")
     DataManager.initialize_data_structure()
     
     try:
@@ -926,7 +867,8 @@ def main():
                 if subtopics:
                     logger.info(f"   {topic}: {len(subtopics)} subtopics")
         else:
-            logger.warning("⚠️ No quiz topics found after initialization")
+            logger.warning("⚠️ No quiz data found in data folder")
+            logger.info("💡 Add CSV files to data/topic_name/ folders and use /refresh")
         
         logger.info("🔄 Starting bot polling...")
         application.run_polling(
