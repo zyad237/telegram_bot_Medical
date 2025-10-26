@@ -60,9 +60,6 @@ def main():
         # Initialize components
         logger.info("🔄 Initializing components...")
         
-        # Initialize data structure
-        DataManager.initialize_data_structure()
-        
         # Initialize database
         db = DatabaseManager(CONFIG["database_file"])
         
@@ -80,7 +77,6 @@ def main():
         application.add_error_handler(error_handler)
         
         # Log available topics
-        from file_manager import FileManager
         topics = FileManager.list_topics()
         if topics:
             logger.info(f"📚 Available topics: {', '.join(topics)}")
@@ -90,7 +86,10 @@ def main():
                     logger.info(f"   {topic}: {len(subtopics)} subtopics")
         else:
             logger.warning("⚠️ No quiz data found in data folder")
-            logger.info("💡 Add CSV files to data/topic_name/ folders and use /refresh")
+            logger.info("💡 Please check:")
+            logger.info("   - Data directory exists with topic folders")
+            logger.info("   - CSV files are in correct format") 
+            logger.info("   - Topics are defined in config.py")
         
         # Start the bot
         logger.info("🤖 Dynamic Quiz Bot is starting...")
