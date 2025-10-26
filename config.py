@@ -20,8 +20,8 @@ CONFIG = {
 # Manual display names for topics and subtopics
 # The keys must match your folder names and CSV filenames
 TOPIC_DISPLAY_NAMES = {
-    "anatomy": "📊 Mathematics",  # Folder: data/math/
-    "histology": "🔬 Science",   # Folder: data/science/
+    "anatomy": "📊 Anatomy",
+    "histology": "🔬 Histology",
 }
 
 SUBPROJECT_DISPLAY_NAMES = {
