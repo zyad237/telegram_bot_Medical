@@ -191,7 +191,7 @@ class CallbackManager:
         """Sanitize text for safe callback data"""
         sanitized = re.sub(r'[^\w\s-]', '', text)
         sanitized = re.sub(r'[-\s]+', '_', sanitized)
-        return sanitized.lower()[:20]
+        return sanitized.lower()  # Removed the [:20] truncation that was causing the issue
     
     @staticmethod
     def create_topic_callback(topic: str) -> str:
