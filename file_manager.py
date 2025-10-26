@@ -85,6 +85,13 @@ class FileManager:
     @staticmethod
     def load_questions(topic: str, subtopic: str) -> List[Dict]:
         """Load questions from CSV file in data directory"""
+            # Debug: Print what we're looking for
+        print(f"🔍 Looking for: topic='{topic}', subtopic='{subtopic}'")
+    
+    # Debug: List all available topics and subtopics
+        print(f"📁 Available topics: {FileManager.list_topics()}")
+        if topic in FileManager.list_topics():
+            print(f"📄 Available subtopics for {topic}: {FileManager.list_subtopics(topic)}")
         # Security validation
         if not validate_topic_name(topic) or not validate_subtopic_name(subtopic):
             logger.error(f"❌ Invalid topic or subtopic name: {topic}/{subtopic}")
