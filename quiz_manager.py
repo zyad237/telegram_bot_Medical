@@ -5,7 +5,7 @@ import random
 import asyncio
 import logging
 from typing import Dict, List
-
+from telegram import Update
 from config import CONFIG
 from file_manager import FileManager
 from database import DatabaseManager
