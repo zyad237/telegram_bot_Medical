@@ -38,7 +38,7 @@ class DatabaseManager:
                     )
                 ''')
                 conn.commit()
-                logger.info(f"✅ Database initialized successfully: {self.db_file}")
+                logger.info("✅ Database initialized successfully")
         except sqlite3.Error as e:
             logger.error(f"❌ Database error: {e}")
     
