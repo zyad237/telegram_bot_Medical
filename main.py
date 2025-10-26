@@ -10,7 +10,7 @@ from telegram.error import TelegramError
 from config import TOKEN, CONFIG
 from utils import acquire_startup_lock
 from database import DatabaseManager
-from file_manager import DataManager
+from file_manager import FileManager
 from quiz_manager import QuizManager
 from handlers import BotHandlers
 
