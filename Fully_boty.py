@@ -184,7 +184,7 @@ class DataManager:
 class CallbackManager:
     """Manage callback data to work with actual filenames"""
     
-    MAX_CALLBACK_LENGTH = 64
+    MAX_CALLBACK_LENGTH = 128
     
     @staticmethod
     def sanitize_callback_text(text: str) -> str:
