@@ -6,6 +6,9 @@ import asyncio
 import logging
 from typing import Dict, List
 
+from telegram import Update
+from telegram.ext import ContextTypes
+
 from config import CONFIG
 from file_manager import FileManager
 from database import DatabaseManager
@@ -46,8 +49,10 @@ class QuizManager:
         questions = FileManager.load_questions(topic, subtopic)
         
         if not questions:
+            topic_display = FileManager.get_topic_display_name(topic)
+            subtopic_display = FileManager.get_subtopic_display_name(topic, subtopic)
             await query.edit_message_text(
-                f"❌ No valid questions found for {topic.title()} - {subtopic}"
+                f"❌ No valid questions found for {topic_display} - {subtopic_display}"
             )
             return False
         
@@ -64,17 +69,22 @@ class QuizManager:
             "chat_id": query.message.chat_id,
         })
         
+        topic_display = FileManager.get_topic_display_name(topic)
+        subtopic_display = FileManager.get_subtopic_display_name(topic, subtopic)
+        
         await query.edit_message_text(
-            f"🎯 Starting {topic.title()} - {subtopic} quiz!\n\n"
+            f"🎯 Starting {topic_display} - {subtopic_display} quiz!\n\n"
             f"• Total questions: {len(questions)}\n"
-            f"• Good luck! 🍀"
+            f"• Answer choices are shuffled\n"
+            f"• No time limits\n\n"
+            f"Good luck! 🍀"
         )
         
         await asyncio.sleep(2)
         await self.send_next_question(update, context)
         return True
 
-    async def send_next_question(self, update: Update, context):
+    async def send_next_question(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Send the next question in the quiz"""
         user_data = context.user_data
         
@@ -115,7 +125,7 @@ class QuizManager:
             await asyncio.sleep(2)
             await self.send_next_question(update, context)
 
-    async def handle_poll_answer(self, update: Update, context):
+    async def handle_poll_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle poll answers"""
         poll_answer = update.poll_answer
         user_data = context.user_data
@@ -168,7 +178,7 @@ class QuizManager:
         await asyncio.sleep(CONFIG["time_between_questions"])
         await self.send_next_question(update, context)
 
-    async def finish_quiz(self, update: Update, context):
+    async def finish_quiz(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Finish the quiz and show results"""
         user_data = context.user_data
         user = update.effective_user
@@ -197,12 +207,15 @@ class QuizManager:
             total_questions=total
         )
         
+        topic_display = FileManager.get_topic_display_name(user_data["topic"])
+        subtopic_display = FileManager.get_subtopic_display_name(user_data["topic"], user_data["subtopic"])
+        
         results_text = (
             f"🎯 Quiz Completed!\n\n"
             f"{performance}\n\n"
             f"📊 Final Score: {correct}/{total} ({percentage:.1f}%)\n"
-            f"📚 Topic: {user_data['topic'].title()}\n"
-            f"🧩 Subtopic: {user_data['subtopic']}\n\n"
+            f"📚 Topic: {topic_display}\n"
+            f"🧩 Subtopic: {subtopic_display}\n\n"
             f"Use /start to try another quiz!"
         )
         
@@ -212,4 +225,4 @@ class QuizManager:
         )
         
         user_data.clear()
-        logger.info(f"✅ Quiz completed: {correct}/{total} ({percentage:.1f}%)")
+        logger.info(f"✅ Quiz completed for user {user.id}: {correct}/{total} ({percentage:.1f}%)")
