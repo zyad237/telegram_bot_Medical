@@ -12,6 +12,7 @@ if not TOKEN:
 
 CONFIG = {
     "data_dir": "data",
+    "database_file": "quiz_bot.db",  # Make sure this line exists
     "max_questions_per_quiz": 100,
     "time_between_questions": 1,
 }

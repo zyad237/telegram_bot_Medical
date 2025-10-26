@@ -1,50 +1,3 @@
-#!/usr/bin/env python3
-"""
-Telegram Quiz Bot - Modular Version
-Main entry point that ties all modules together
-"""
-import logging
-from telegram.ext import Application
-from telegram.error import TelegramError
-
-from config import TOKEN, CONFIG
-from utils import acquire_startup_lock
-from database import DatabaseManager
-from file_manager import FileManager
-from quiz_manager import QuizManager
-from handlers import BotHandlers
-
-# Initialize logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler('quiz_bot.log', encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-async def error_handler(update, context):
-    """Global error handler"""
-    error = context.error
-    logger.error(f"❌ Exception while handling an update: {error}", exc_info=error)
-    
-    # Ignore common Telegram errors
-    if isinstance(error, TelegramError):
-        error_msg = str(error).lower()
-        if any(msg in error_msg for msg in ["query is too old", "button_data_invalid", "message is not modified"]):
-            return
-    
-    try:
-        if update and update.effective_chat:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="❌ An error occurred. Please use /start to begin again."
-            )
-    except Exception as e:
-        logger.error(f"❌ Could not send error message: {e}")
-
 def main():
     """Start the bot with all modules integrated"""
     
@@ -60,7 +13,8 @@ def main():
         # Initialize components
         logger.info("🔄 Initializing components...")
         
-        # Initialize database
+        # Initialize database - make sure CONFIG has 'database_file' key
+        logger.info(f"📁 Database file: {CONFIG.get('database_file', 'NOT FOUND')}")
         db = DatabaseManager(CONFIG["database_file"])
         
         # Initialize quiz manager
@@ -118,6 +72,3 @@ def main():
                 logger.info("🔓 Startup lock released")
             except Exception as e:
                 logger.error(f"❌ Error releasing lock: {e}")
-
-if __name__ == "__main__":
-    main()
