@@ -20,25 +20,19 @@ CONFIG = {
 # Manual display names for topics and subtopics
 # The keys must match your folder names and CSV filenames
 TOPIC_DISPLAY_NAMES = {
-    "math": "📊 Mathematics",  # Folder: data/math/
-    "science": "🔬 Science",   # Folder: data/science/
-    "history": "📜 History",   # Folder: data/history/
+    "anatomy": "📊 Mathematics",  # Folder: data/math/
+    "histology": "🔬 Science",   # Folder: data/science/
 }
 
 SUBPROJECT_DISPLAY_NAMES = {
-    "math": {
-        "algebra": "Algebra Basics",           # File: algebra.csv
-        "geometry": "Geometry Fundamentals",   # File: geometry.csv
-        "calculus": "Calculus Concepts",       # File: calculus.csv
+    "anatomy": {
+        "3rd_Month_to_placenta": "3rd Month to placenta",           
+        "Derivative_of_endoderm": "Derivative of Endoderm",   
+        "Derivatives_of_the_Mesodermal": "Derivatives of the Mesodermal", 
+        "The_Embryonic_Period_3rd_to_8th_Week": "The Embryonic Period 3rd to 8th Week",       
     },
-    "science": {
-        "physics": "Physics Principles",       # File: physics.csv
-        "chemistry": "Chemistry Essentials",   # File: chemistry.csv
-        "biology": "Biology Basics",           # File: biology.csv
+    "histology": {
+        "enzymes": "Physics Principles",
     },
-    "history": {
-        "ancient": "Ancient Civilizations",    # File: ancient.csv
-        "world_war": "World Wars",             # File: world_war.csv
-        "modern": "Modern History",            # File: modern.csv
+    
     }
-}
