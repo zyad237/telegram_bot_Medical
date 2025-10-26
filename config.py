@@ -25,13 +25,13 @@ TOPIC_DISPLAY_NAMES = {
 }
 
 SUBPROJECT_DISPLAY_NAMES = {
-    "anatomy": {  # Must match folder name "anatomy"
-        "3Rd_Month_To_Placenta": "3rd Month to placenta",           
-        "Derivative_Of_Endoderm": "Derivative of Endoderm",  # Must match filename EXACTLY
-        "Derivatives_Of_The_Mesodermal": "Derivatives of the Mesodermal", 
-        "The_Embryonic_Period_3Rd_To_8Th_Week": "The Embryonic Period 3rd to 8th Week",       
+    "anatomy": {
+        "3rd_Month_to_placenta": "3rd Month to placenta",           
+        "Derivative_of_endoderm": "Derivative of Endoderm",
+        "Derivatives_of_the_Mesodermal": "Derivatives of the Mesodermal",  # Fixed capitalization
+        "The_Embryonic_Period_3rd_to_8th_Week": "The Embryonic Period 3rd to 8th Week",       
     },
-    "histology": {  # Must match folder name "histology"
+    "histology": {
         # Add your histology CSV files here when you have them
     },
 }
