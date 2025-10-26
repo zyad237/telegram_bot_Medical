@@ -5,7 +5,10 @@ import random
 import asyncio
 import logging
 from typing import Dict, List
+
 from telegram import Update
+from telegram.ext import CallbackContext
+
 from config import CONFIG
 from file_manager import FileManager
 from database import DatabaseManager
@@ -40,7 +43,7 @@ class QuizManager:
         
         return shuffled_question
 
-    async def start_quiz(self, update, context, topic: str, subtopic: str):
+    async def start_quiz(self, update: Update, context: CallbackContext, topic: str, subtopic: str):
         """Start a new quiz"""
         query = update.callback_query
         questions = FileManager.load_questions(topic, subtopic)
@@ -81,7 +84,7 @@ class QuizManager:
         await self.send_next_question(update, context)
         return True
 
-    async def send_next_question(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def send_next_question(self, update: Update, context: CallbackContext):
         """Send the next question in the quiz"""
         user_data = context.user_data
         
@@ -122,7 +125,7 @@ class QuizManager:
             await asyncio.sleep(2)
             await self.send_next_question(update, context)
 
-    async def handle_poll_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def handle_poll_answer(self, update: Update, context: CallbackContext):
         """Handle poll answers"""
         poll_answer = update.poll_answer
         user_data = context.user_data
@@ -175,7 +178,7 @@ class QuizManager:
         await asyncio.sleep(CONFIG["time_between_questions"])
         await self.send_next_question(update, context)
 
-    async def finish_quiz(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def finish_quiz(self, update: Update, context: CallbackContext):
         """Finish the quiz and show results"""
         user_data = context.user_data
         user = update.effective_user
