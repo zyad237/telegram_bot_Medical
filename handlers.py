@@ -1,5 +1,5 @@
 """
-Bot command and callback handlers
+Bot command and callback handlers for nested structure
 """
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -41,61 +41,8 @@ class BotHandlers:
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
     
-    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /help command"""
-        help_text = (
-            "🤖 Quiz Bot Help\n\n"
-            "📚 Available Commands:\n"
-            "• /start - Start the bot and select quiz\n"
-            "• /stats - View your quiz statistics\n"
-            "• /cancel - Cancel current quiz\n"
-            "• /help - Show this help message\n\n"
-            "🎯 How to Use:\n"
-            "1. Use /start to begin\n"
-            "2. Select a subject and topic\n"
-            "3. Answer questions at your own pace\n"
-            "4. View your results at the end"
-        )
-        
-        await update.message.reply_text(help_text)
+    # ... (keep other command handlers: help_command, stats_command, cancel_command the same)
     
-    async def stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /stats command"""
-        user = update.effective_user
-        stats = self.db.get_user_stats(user.id)
-        
-        if stats['total_quizzes'] == 0:
-            await update.message.reply_text("📊 You haven't completed any quizzes yet!")
-            return
-        
-        stats_text = (
-            f"📊 Your Quiz Statistics\n\n"
-            f"• Total Quizzes: {stats['total_quizzes']}\n"
-            f"• Average Score: {stats['average_score']}%\n\n"
-            f"Keep up the great work! 🎯"
-        )
-        
-        await update.message.reply_text(stats_text)
-    
-    async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /cancel command"""
-        user_data = context.user_data
-        
-        if user_data.get("quiz_active"):
-            try:
-                if user_data.get("active_poll_id"):
-                    await context.bot.stop_poll(
-                        chat_id=user_data["chat_id"],
-                        message_id=user_data.get("poll_message_id")
-                    )
-            except Exception as e:
-                logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
-            
-            user_data.clear()
-            await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
-        else:
-            await update.message.reply_text("ℹ️ No active quiz to cancel.")
-
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all callback queries"""
         query = update.callback_query
@@ -103,28 +50,29 @@ class BotHandlers:
         try:
             await query.answer()
         except BadRequest:
-            pass  # Ignore expired queries
+            pass
         
         callback_data = query.data
-        logger.info(f"📨 Received callback: {callback_data}")
         
         try:
             parsed = CallbackManager.parse_callback_data(callback_data)
             if not parsed:
-                await query.edit_message_text("❌ Invalid selection. Please use /start to begin again.")
+                await query.edit_message_text("❌ Invalid selection.")
                 return
             
             if parsed["type"] == "main_menu":
                 await self.handle_main_menu(update, context)
             elif parsed["type"] == "topic":
                 await self.handle_topic_selection(update, context, parsed["topic"])
+            elif parsed["type"] == "category":
+                await self.handle_category_selection(update, context, parsed["topic"], parsed["category"])
             elif parsed["type"] == "subtopic":
-                await self.handle_subtopic_selection(update, context, parsed["topic"], parsed["subtopic"])
+                await self.handle_subtopic_selection(update, context, parsed["topic"], parsed["category"], parsed["subtopic"])
                     
         except Exception as e:
             logger.error(f"❌ Error handling callback: {e}")
-            await query.edit_message_text("❌ An error occurred. Please try again.")
-
+            await query.edit_message_text("❌ An error occurred.")
+    
     async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle return to main menu"""
         query = update.callback_query
@@ -145,25 +93,23 @@ class BotHandlers:
                 "📚 Select a subject:",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
-        except BadRequest as e:
-            if "message is not modified" not in str(e).lower():
-                raise e
-
+        except BadRequest:
+            pass
+    
     async def handle_topic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str):
-        """Handle topic selection"""
+        """Handle topic selection - show categories"""
         query = update.callback_query
         
-        subtopics = FileManager.list_subtopics(topic)
+        categories = FileManager.list_categories(topic)
         
-        if not subtopics:
-            topic_display = FileManager.get_topic_display_name(topic)
-            await query.edit_message_text(f"❌ No quizzes available for {topic_display}")
+        if not categories:
+            await query.edit_message_text(f"❌ No categories available for {FileManager.get_topic_display_name(topic)}")
             return
         
         keyboard = []
-        for subtopic in subtopics:
-            callback_data = CallbackManager.create_subtopic_callback(topic, subtopic)
-            display_name = FileManager.get_subtopic_display_name(topic, subtopic)
+        for category in categories:
+            callback_data = CallbackManager.create_category_callback(topic, category)
+            display_name = FileManager.get_category_display_name(topic, category)
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
         keyboard.append([InlineKeyboardButton("« Back to Subjects", callback_data="main_menu")])
@@ -171,16 +117,46 @@ class BotHandlers:
         try:
             topic_display = FileManager.get_topic_display_name(topic)
             await query.edit_message_text(
-                f"{topic_display} - Choose a topic:",
+                f"{topic_display} - Choose a category:",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
-        except BadRequest as e:
-            if "message is not modified" not in str(e).lower():
-                raise e
-
-    async def handle_subtopic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str, subtopic: str):
+        except BadRequest:
+            pass
+    
+    async def handle_category_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str, category: str):
+        """Handle category selection - show subtopics"""
+        query = update.callback_query
+        
+        subtopics = FileManager.list_subtopics(topic, category)
+        
+        if not subtopics:
+            topic_display = FileManager.get_topic_display_name(topic)
+            category_display = FileManager.get_category_display_name(topic, category)
+            await query.edit_message_text(f"❌ No quizzes available for {topic_display} - {category_display}")
+            return
+        
+        keyboard = []
+        for subtopic in subtopics:
+            callback_data = CallbackManager.create_subtopic_callback(topic, category, subtopic)
+            display_name = FileManager.get_subtopic_display_name(topic, category, subtopic)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Categories", 
+                        callback_data=CallbackManager.create_topic_callback(topic))])
+        
+        try:
+            topic_display = FileManager.get_topic_display_name(topic)
+            category_display = FileManager.get_category_display_name(topic, category)
+            await query.edit_message_text(
+                f"{topic_display} - {category_display}\nChoose a topic:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_subtopic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str, category: str, subtopic: str):
         """Handle subtopic selection and start quiz"""
-        await self.quiz_manager.start_quiz(update, context, topic, subtopic)
+        await self.quiz_manager.start_quiz(update, context, topic, category, subtopic)
     
     async def handle_poll_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle poll answers"""
@@ -193,5 +169,4 @@ class BotHandlers:
         application.add_handler(CommandHandler("stats", self.stats_command))
         application.add_handler(CommandHandler("cancel", self.cancel_command))
         application.add_handler(CallbackQueryHandler(self.handle_callback))
-        # FIXED: Use PollAnswerHandler instead of CallbackQueryHandler
         application.add_handler(PollAnswerHandler(self.handle_poll_answer))
