@@ -47,7 +47,7 @@ NESTED_STRUCTURE = {
         "general": {
             "display_name": "General Histology",
             "subtopics": {
-                "epithelium": "Epithelial Tissue",
+                "bones": "Bone Tissue",
                 "connective": "Connective Tissue",
                 "muscle": "Muscle Tissue",
                 "nervous": "Nervous Tissue",
