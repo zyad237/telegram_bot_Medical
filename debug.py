@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Debug script to check file discovery
+Debug script to check file discovery for nested structure
 """
 import os
-from config import CONFIG, TOPIC_DISPLAY_NAMES, SUBPROJECT_DISPLAY_NAMES
-from telegram import Update
-print("🔍 DEBUG FILE DISCOVERY")
-print("=" * 50)
+from config import CONFIG, TOPIC_DISPLAY_NAMES, NESTED_STRUCTURE
+
+print("🔍 DEBUG FILE DISCOVERY - NESTED STRUCTURE")
+print("=" * 60)
 
 # Check data directory
 data_dir = CONFIG["data_dir"]
@@ -17,81 +17,75 @@ if os.path.exists(data_dir):
     print(f"Contents: {os.listdir(data_dir)}")
 
 print("\n📊 CONFIGURATION CHECK")
-print("=" * 50)
+print("=" * 60)
 print(f"TOPIC_DISPLAY_NAMES: {TOPIC_DISPLAY_NAMES}")
-print(f"SUBPROJECT_DISPLAY_NAMES: {SUBPROJECT_DISPLAY_NAMES}")
+print(f"NESTED_STRUCTURE: {NESTED_STRUCTURE}")
 
-print("\n📁 FILE STRUCTURE CHECK")
-print("=" * 50)
+print("\n📁 NESTED FILE STRUCTURE CHECK")
+print("=" * 60)
+
 for topic in TOPIC_DISPLAY_NAMES:
     topic_path = os.path.join(data_dir, topic)
-    print(f"\nTopic: {topic}")
-    print(f"Path: {topic_path}")
-    print(f"Exists: {os.path.exists(topic_path)}")
+    print(f"\n🎯 TOPIC: {topic}")
+    print(f"   Path: {topic_path}")
+    print(f"   Exists: {os.path.exists(topic_path)}")
     
-    if os.path.exists(topic_path):
-        files = os.listdir(topic_path)
-        print(f"Files: {files}")
+    if not os.path.exists(topic_path):
+        print(f"   ❌ Topic directory does not exist!")
+        continue
+    
+    # Check categories for this topic
+    categories = os.listdir(topic_path)
+    print(f"   Categories found: {categories}")
+    
+    for category in categories:
+        category_path = os.path.join(topic_path, category)
+        print(f"\n   📂 CATEGORY: {category}")
+        print(f"      Path: {category_path}")
+        print(f"      Exists: {os.path.exists(category_path)}")
         
-        for file in files:
-            if file.endswith('.csv'):
-                subtopic = file[:-4]
-                print(f"  CSV: {file} -> subtopic: '{subtopic}'")
-                if topic in SUBPROJECT_DISPLAY_NAMES:
-                    if subtopic in SUBPROJECT_DISPLAY_NAMES[topic]:
-                        print(f"    ✅ IN CONFIG")
-                    else:
-                        print(f"    ❌ NOT IN CONFIG")
-async def send_next_question(self, update: Update, context: CallbackContext):
-    """Send the next question in the quiz"""
-    user_data = context.user_data
-    
-    print(f"🔍 SEND_NEXT_QUESTION called")
-    print(f"   Quiz active: {user_data.get('quiz_active')}")
-    print(f"   Current question: {user_data.get('current_question')}")
-    print(f"   Total questions: {len(user_data.get('questions', []))}")
-    
-    if not user_data.get("quiz_active"):
-        print(f"❌ Quiz not active - returning")
-        return
-    
-    current_index = user_data["current_question"]
-    questions = user_data["questions"]
-    chat_id = user_data["chat_id"]
-    
-    if current_index >= len(questions):
-        print(f"🎯 Quiz finished - calling finish_quiz")
-        await self.finish_quiz(update, context)
-        return
-    
-    print(f"📝 Sending question {current_index + 1}/{len(questions)}")
-    
-    original_question = questions[current_index]
-    shuffled_question = self.shuffle_choices(original_question)
-    user_data["current_shuffled"] = shuffled_question
-    
-    progress = f"Question {current_index + 1}/{len(questions)}\n\n"
-    question_text = progress + shuffled_question["question"]
-    
-    try:
-        message = await context.bot.send_poll(
-            chat_id=chat_id,
-            question=question_text,
-            options=shuffled_question["options"],
-            type="quiz",
-            correct_option_id=shuffled_question["correct_index"],
-            is_anonymous=False,
-        )
+        if not os.path.exists(category_path) or not os.path.isdir(category_path):
+            print(f"      ❌ Category directory does not exist or is not a directory!")
+            continue
         
-        user_data["active_poll_id"] = message.poll.id
-        user_data["poll_message_id"] = message.message_id
+        # Check if category is in config
+        if (topic in NESTED_STRUCTURE and 
+            category in NESTED_STRUCTURE[topic]):
+            print(f"      ✅ Category '{category}' is in NESTED_STRUCTURE")
+            category_config = NESTED_STRUCTURE[topic][category]
+        else:
+            print(f"      ❌ Category '{category}' NOT in NESTED_STRUCTURE")
+            continue
         
-        print(f"✅ Question {current_index + 1} sent successfully")
-        print(f"   Poll ID: {message.poll.id}")
-        print(f"   Message ID: {message.message_id}")
+        # Check CSV files in this category
+        csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv')]
+        print(f"      CSV files found: {csv_files}")
         
-    except Exception as e:
-        print(f"❌ Error sending question {current_index + 1}: {e}")
-        user_data["current_question"] += 1
-        await asyncio.sleep(2)
-        await self.send_next_question(update, context)
+        if not csv_files:
+            print(f"      ⚠️ No CSV files in this category")
+            continue
+        
+        for csv_file in csv_files:
+            subtopic = csv_file[:-4]  # Remove .csv extension
+            print(f"\n      📄 CSV: {csv_file}")
+            print(f"         Subtopic name: '{subtopic}'")
+            
+            # Check if subtopic is in config
+            if ("subtopics" in category_config and 
+                subtopic in category_config["subtopics"]):
+                print(f"         ✅ IN CONFIG - Display name: '{category_config['subtopics'][subtopic]}'")
+            else:
+                print(f"         ❌ NOT IN CONFIG")
+                if "subtopics" in category_config:
+                    print(f"         Available subtopics in config: {list(category_config['subtopics'].keys())}")
+
+print("\n🔧 CONFIGURATION SUMMARY")
+print("=" * 60)
+print("Topics and their structure from config:")
+for topic, topic_data in NESTED_STRUCTURE.items():
+    print(f"\n{topic}:")
+    for category, category_data in topic_data.items():
+        print(f"  └── {category} ('{category_data['display_name']}'):")
+        if "subtopics" in category_data:
+            for subtopic, display_name in category_data["subtopics"].items():
+                print(f"      └── {subtopic} → '{display_name}'")
