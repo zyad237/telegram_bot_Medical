@@ -26,7 +26,7 @@ TOPIC_DISPLAY_NAMES = {
 
 SUBPROJECT_DISPLAY_NAMES = {
     "anatomy": {
-        "3rd_month_to_placenta": "3rd Month to placenta",           
+        "3rd_Month_to_placenta": "3rd Month to placenta",           
         "Derivative_of_endoderm": "Derivative of Endoderm",
         "Derivatives_of_the_Mesodermal": "Derivatives of the Mesodermal",  # Fixed capitalization
         "The_Embryonic_Period_3rd_to_8th_Week": "The Embryonic Period 3rd to 8th Week",       
