@@ -43,16 +43,17 @@ class QuizManager:
         
         return shuffled_question
 
-    async def start_quiz(self, update: Update, context: CallbackContext, topic: str, subtopic: str):
+    async def start_quiz(self, update: Update, context: CallbackContext, topic: str, category: str, subtopic: str):
         """Start a new quiz"""
         query = update.callback_query
-        questions = FileManager.load_questions(topic, subtopic)
+        questions = FileManager.load_questions(topic, category, subtopic)
         
         if not questions:
             topic_display = FileManager.get_topic_display_name(topic)
-            subtopic_display = FileManager.get_subtopic_display_name(topic, subtopic)
+            category_display = FileManager.get_category_display_name(topic, category)
+            subtopic_display = FileManager.get_subtopic_display_name(topic, category, subtopic)
             await query.edit_message_text(
-                f"❌ No valid questions found for {topic_display} - {subtopic_display}"
+                f"❌ No valid questions found for {topic_display} - {category_display} - {subtopic_display}"
             )
             return False
         
@@ -65,15 +66,17 @@ class QuizManager:
             "current_question": 0,
             "correct_answers": 0,
             "topic": topic,
+            "category": category,
             "subtopic": subtopic,
             "chat_id": query.message.chat_id,
         })
         
         topic_display = FileManager.get_topic_display_name(topic)
-        subtopic_display = FileManager.get_subtopic_display_name(topic, subtopic)
+        category_display = FileManager.get_category_display_name(topic, category)
+        subtopic_display = FileManager.get_subtopic_display_name(topic, category, subtopic)
         
         await query.edit_message_text(
-            f"🎯 Starting {topic_display} - {subtopic_display} quiz!\n\n"
+            f"🎯 Starting {topic_display} - {category_display} - {subtopic_display} quiz!\n\n"
             f"• Total questions: {len(questions)}\n"
             f"• Answer choices are shuffled\n"
             f"• No time limits\n\n"
@@ -88,7 +91,13 @@ class QuizManager:
         """Send the next question in the quiz"""
         user_data = context.user_data
         
+        print(f"🔍 SEND_NEXT_QUESTION called")
+        print(f"   Quiz active: {user_data.get('quiz_active')}")
+        print(f"   Current question: {user_data.get('current_question')}")
+        print(f"   Total questions: {len(user_data.get('questions', []))}")
+        
         if not user_data.get("quiz_active"):
+            print(f"❌ Quiz not active - returning")
             return
         
         current_index = user_data["current_question"]
@@ -96,8 +105,11 @@ class QuizManager:
         chat_id = user_data["chat_id"]
         
         if current_index >= len(questions):
+            print(f"🎯 Quiz finished - calling finish_quiz")
             await self.finish_quiz(update, context)
             return
+        
+        print(f"📝 Sending question {current_index + 1}/{len(questions)}")
         
         original_question = questions[current_index]
         shuffled_question = self.shuffle_choices(original_question)
@@ -119,8 +131,12 @@ class QuizManager:
             user_data["active_poll_id"] = message.poll.id
             user_data["poll_message_id"] = message.message_id
             
+            print(f"✅ Question {current_index + 1} sent successfully")
+            print(f"   Poll ID: {message.poll.id}")
+            print(f"   Message ID: {message.message_id}")
+            
         except Exception as e:
-            logger.error(f"❌ Error sending question: {e}")
+            print(f"❌ Error sending question {current_index + 1}: {e}")
             user_data["current_question"] += 1
             await asyncio.sleep(2)
             await self.send_next_question(update, context)
@@ -130,18 +146,33 @@ class QuizManager:
         poll_answer = update.poll_answer
         user_data = context.user_data
         
+        print(f"🎯 POLL ANSWER RECEIVED:")
+        print(f"   Poll ID: {poll_answer.poll_id}")
+        print(f"   User ID: {poll_answer.user.id}")
+        print(f"   Option IDs: {poll_answer.option_ids}")
+        print(f"   Active Poll ID in user_data: {user_data.get('active_poll_id')}")
+        print(f"   Quiz Active: {user_data.get('quiz_active')}")
+        
+        # Check if this is our poll
         if user_data.get("active_poll_id") != poll_answer.poll_id:
+            print(f"❌ Poll ID mismatch - ignoring")
             return
         
         if not user_data.get("quiz_active"):
+            print(f"❌ Quiz not active - ignoring")
             return
         
         shuffled_question = user_data.get("current_shuffled")
         if not shuffled_question:
+            print(f"❌ No current shuffled question - ignoring")
             return
         
         user_answer = poll_answer.option_ids[0] if poll_answer.option_ids else None
         is_correct = user_answer == shuffled_question["correct_index"]
+        
+        print(f"   User answer: {user_answer}")
+        print(f"   Correct index: {shuffled_question['correct_index']}")
+        print(f"   Is correct: {is_correct}")
         
         if is_correct:
             user_data["correct_answers"] += 1
@@ -156,8 +187,9 @@ class QuizManager:
                 text=feedback,
                 reply_to_message_id=user_data.get("poll_message_id")
             )
+            print(f"✅ Feedback sent: {feedback}")
         except Exception as e:
-            logger.error(f"❌ Error sending feedback: {e}")
+            print(f"❌ Error sending feedback: {e}")
         
         # Stop the poll
         try:
@@ -165,15 +197,20 @@ class QuizManager:
                 chat_id=user_data["chat_id"],
                 message_id=user_data.get("poll_message_id")
             )
-        except Exception:
-            pass
+            print(f"✅ Poll stopped")
+        except Exception as e:
+            print(f"⚠️ Could not stop poll: {e}")
         
+        # Move to next question
         user_data["current_question"] += 1
         user_data["active_poll_id"] = None
         user_data["poll_message_id"] = None
         
         if "current_shuffled" in user_data:
             del user_data["current_shuffled"]
+        
+        print(f"📊 Progress: {user_data['current_question']}/{len(user_data['questions'])}")
+        print(f"📈 Correct answers: {user_data['correct_answers']}")
         
         await asyncio.sleep(CONFIG["time_between_questions"])
         await self.send_next_question(update, context)
@@ -208,13 +245,15 @@ class QuizManager:
         )
         
         topic_display = FileManager.get_topic_display_name(user_data["topic"])
-        subtopic_display = FileManager.get_subtopic_display_name(user_data["topic"], user_data["subtopic"])
+        category_display = FileManager.get_category_display_name(user_data["topic"], user_data["category"])
+        subtopic_display = FileManager.get_subtopic_display_name(user_data["topic"], user_data["category"], user_data["subtopic"])
         
         results_text = (
             f"🎯 Quiz Completed!\n\n"
             f"{performance}\n\n"
             f"📊 Final Score: {correct}/{total} ({percentage:.1f}%)\n"
             f"📚 Topic: {topic_display}\n"
+            f"📂 Category: {category_display}\n"
             f"🧩 Subtopic: {subtopic_display}\n\n"
             f"Use /start to try another quiz!"
         )
