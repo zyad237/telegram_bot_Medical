@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Telegram Quiz Bot - Modular Version
-Main entry point that ties all modules together
+Telegram Quiz Bot - Main Entry Point
 """
 import logging
 from telegram.ext import Application
@@ -76,23 +75,23 @@ def main():
         bot_handlers.register_handlers(application)
         application.add_error_handler(error_handler)
         
-        # Log available topics
+        # Log available topics and categories
         topics = FileManager.list_topics()
         if topics:
             logger.info(f"📚 Available topics: {', '.join(topics)}")
             for topic in topics:
-                subtopics = FileManager.list_subtopics(topic)
-                if subtopics:
-                    logger.info(f"   {topic}: {len(subtopics)} subtopics")
+                categories = FileManager.list_categories(topic)
+                if categories:
+                    logger.info(f"   {topic}: {len(categories)} categories")
+                    for category in categories:
+                        subtopics = FileManager.list_subtopics(topic, category)
+                        if subtopics:
+                            logger.info(f"     {category}: {len(subtopics)} subtopics")
         else:
             logger.warning("⚠️ No quiz data found in data folder")
-            logger.info("💡 Please check:")
-            logger.info("   - Data directory exists with topic folders")
-            logger.info("   - CSV files are in correct format") 
-            logger.info("   - Topics are defined in config.py")
         
         # Start the bot
-        logger.info("🤖 Dynamic Quiz Bot is starting...")
+        logger.info("🤖 Quiz Bot is starting...")
         
         application.run_polling(
             allowed_updates=['message', 'callback_query', 'poll_answer'],
