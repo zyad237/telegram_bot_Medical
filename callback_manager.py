@@ -8,16 +8,15 @@ from typing import Optional, Dict
 logger = logging.getLogger(__name__)
 
 class CallbackManager:
-    """Manage callback data to work with actual filenames"""
-    
     MAX_CALLBACK_LENGTH = 128
     
     @staticmethod
     def sanitize_callback_text(text: str) -> str:
-        """Sanitize text for safe callback data"""
+        """Sanitize text for safe callback data - but preserve original case"""
+        # Only remove special characters, don't change case
         sanitized = re.sub(r'[^\w\s-]', '', text)
         sanitized = re.sub(r'[-\s]+', '_', sanitized)
-        return sanitized.lower()  # No truncation - uses full filename
+        return sanitized  # Removed .lower() to preserve case
     
     @staticmethod
     def create_topic_callback(topic: str) -> str:
@@ -38,8 +37,6 @@ class CallbackManager:
         try:
             if callback_data == "main_menu":
                 return {"type": "main_menu"}
-            elif callback_data == "refresh_topics":
-                return {"type": "refresh_topics"}
             elif callback_data.startswith("t:"):
                 return {"type": "topic", "topic": callback_data[2:]}
             elif callback_data.startswith("s:"):
