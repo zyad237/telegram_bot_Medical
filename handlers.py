@@ -1,9 +1,9 @@
 """
-Bot command and callback handlers with manual display names
+Bot command and callback handlers
 """
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, CallbackQueryHandler, CommandHandler
+from telegram.ext import ContextTypes, CallbackQueryHandler, CommandHandler, PollAnswerHandler
 from telegram.error import BadRequest
 
 from file_manager import FileManager
@@ -27,13 +27,7 @@ class BotHandlers:
         topics = FileManager.list_topics()
         
         if not topics:
-            await update.message.reply_text(
-                "📝 No quiz topics available.\n\n"
-                "Please check:\n"
-                "• Data directory exists with topic folders\n"
-                "• CSV files are in correct format\n"
-                "• Topics are defined in configuration"
-            )
+            await update.message.reply_text("📝 No quiz topics available.")
             return
         
         keyboard = []
@@ -43,8 +37,7 @@ class BotHandlers:
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
         await update.message.reply_text(
-            "🎯 Welcome to Quiz Bot!\n\n"
-            "Select a subject to begin:",
+            "🎯 Welcome to Quiz Bot!\n\nSelect a subject to begin:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
     
@@ -63,6 +56,7 @@ class BotHandlers:
             "3. Answer questions at your own pace\n"
             "4. View your results at the end"
         )
+        
         await update.message.reply_text(help_text)
     
     async def stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -80,6 +74,7 @@ class BotHandlers:
             f"• Average Score: {stats['average_score']}%\n\n"
             f"Keep up the great work! 🎯"
         )
+        
         await update.message.reply_text(stats_text)
     
     async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,14 +88,14 @@ class BotHandlers:
                         chat_id=user_data["chat_id"],
                         message_id=user_data.get("poll_message_id")
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
             
             user_data.clear()
-            await update.message.reply_text("❌ Quiz cancelled.")
+            await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
         else:
             await update.message.reply_text("ℹ️ No active quiz to cancel.")
-    
+
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all callback queries"""
         query = update.callback_query
@@ -108,14 +103,15 @@ class BotHandlers:
         try:
             await query.answer()
         except BadRequest:
-            pass
+            pass  # Ignore expired queries
         
         callback_data = query.data
+        logger.info(f"📨 Received callback: {callback_data}")
         
         try:
             parsed = CallbackManager.parse_callback_data(callback_data)
             if not parsed:
-                await query.edit_message_text("❌ Invalid selection.")
+                await query.edit_message_text("❌ Invalid selection. Please use /start to begin again.")
                 return
             
             if parsed["type"] == "main_menu":
@@ -127,8 +123,8 @@ class BotHandlers:
                     
         except Exception as e:
             logger.error(f"❌ Error handling callback: {e}")
-            await query.edit_message_text("❌ An error occurred.")
-    
+            await query.edit_message_text("❌ An error occurred. Please try again.")
+
     async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle return to main menu"""
         query = update.callback_query
@@ -149,9 +145,10 @@ class BotHandlers:
                 "📚 Select a subject:",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
-        except BadRequest:
-            pass
-    
+        except BadRequest as e:
+            if "message is not modified" not in str(e).lower():
+                raise e
+
     async def handle_topic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str):
         """Handle topic selection"""
         query = update.callback_query
@@ -177,9 +174,10 @@ class BotHandlers:
                 f"{topic_display} - Choose a topic:",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
-        except BadRequest:
-            pass
-    
+        except BadRequest as e:
+            if "message is not modified" not in str(e).lower():
+                raise e
+
     async def handle_subtopic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, topic: str, subtopic: str):
         """Handle subtopic selection and start quiz"""
         await self.quiz_manager.start_quiz(update, context, topic, subtopic)
@@ -195,4 +193,5 @@ class BotHandlers:
         application.add_handler(CommandHandler("stats", self.stats_command))
         application.add_handler(CommandHandler("cancel", self.cancel_command))
         application.add_handler(CallbackQueryHandler(self.handle_callback))
-        application.add_handler(CallbackQueryHandler(self.handle_poll_answer))
+        # FIXED: Use PollAnswerHandler instead of CallbackQueryHandler
+        application.add_handler(PollAnswerHandler(self.handle_poll_answer))
