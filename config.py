@@ -37,8 +37,8 @@ NESTED_STRUCTURE = {
             "display_name": "Embryology", 
             "subtopics": {
                 "3rd_Month_to_placenta": "3rd Month to Placenta",
-                "Derivative_of_endoderm": "Derivative of Endoderm",
-                "Derivatives_of_the_Mesodermal": "Derivatives of the Mesodermal",
+                "Derivatives_of_endoderm": "Derivative of Endoderm",
+                "Derivatives_of_Mesodermal": "Derivatives of the Mesodermal",
                 "The_Embryonic_Period_3rd_to_8th_Week": "The Embryonic Period 3rd to 8th Week",
             }
         }
