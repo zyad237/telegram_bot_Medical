@@ -1,5 +1,5 @@
 """
-File management for medical curriculum structure
+File management for numbered CSV files
 """
 import os
 import csv
@@ -13,12 +13,12 @@ from utils import sanitize_text
 logger = logging.getLogger(__name__)
 
 class FileManager:
-    # ... (keep all the list_years, list_terms, list_blocks, list_subjects, list_categories methods the same)
+    # ... (keep all the navigation methods the same: list_years, list_terms, etc.)
     
     @staticmethod
     @lru_cache(maxsize=1024)
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
-        """Get list of available subtopics for a category - using actual filenames"""
+        """Get list of available subtopics for a category - using numbered filenames"""
         structure = NAVIGATION_STRUCTURE
         if (year not in structure or 
             "terms" not in structure[year] or
@@ -38,16 +38,20 @@ class FileManager:
         subtopics = []
         for file in os.listdir(category_path):
             if file.endswith('.csv') and not file.startswith('.'):
-                # Use the actual filename as the subtopic key
+                # Use the actual numbered filename as the subtopic key
                 if ("subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
                     file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
-                    subtopics.append(file)  # Store the full filename
+                    subtopics.append(file)  # Store the full numbered filename
         
-        return sorted(subtopics)
+        # Sort by the numeric prefix to maintain order
+        return sorted(subtopics, key=lambda x: (
+            int(x.split('_')[0]) if x.split('_')[0].isdigit() else float('inf'), 
+            x
+        ))
     
     @staticmethod
     def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
-        """Get display name for subtopic - subtopic is the actual filename"""
+        """Get display name for subtopic - subtopic is the numbered filename"""
         structure = NAVIGATION_STRUCTURE
         if (year in structure and 
             "terms" in structure[year] and
@@ -63,11 +67,15 @@ class FileManager:
             return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"][subtopic]
         
         # Fallback: remove .csv and format the filename
-        return subtopic[:-4].replace('_', ' ').title()
+        display_name = subtopic[:-4]  # Remove .csv
+        if '_' in display_name:
+            # Remove the number prefix for display
+            display_name = display_name.split('_', 1)[1]
+        return display_name.replace('_', ' ').title()
     
     @staticmethod
     def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file - subtopic is the actual filename"""
+        """Load questions from CSV file - subtopic is the numbered filename"""
         structure = NAVIGATION_STRUCTURE
         
         # Check if this path exists in navigation structure
@@ -85,7 +93,7 @@ class FileManager:
             logger.error(f"❌ Path not in navigation structure: {year}/{term}/{block}/{subject}/{category}/{subtopic}")
             return []
         
-        # Construct file path - subtopic is already the filename
+        # Construct file path - subtopic is already the numbered filename
         file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
         
         logger.info(f"📁 Loading questions from: {file_path}")

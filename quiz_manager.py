@@ -1,5 +1,5 @@
 """
-Quiz logic and management
+Quiz logic and management for 6-level navigation
 """
 import random
 import asyncio
@@ -43,17 +43,20 @@ class QuizManager:
         
         return shuffled_question
 
-    async def start_quiz(self, update: Update, context: CallbackContext, topic: str, category: str, subtopic: str):
-        """Start a new quiz"""
+    async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic: str):
+        """Start a new quiz with 6-level navigation"""
         query = update.callback_query
-        questions = FileManager.load_questions(topic, category, subtopic)
+        questions = FileManager.load_questions(year, term, block, subject, category, subtopic)
         
         if not questions:
-            topic_display = FileManager.get_topic_display_name(topic)
-            category_display = FileManager.get_category_display_name(topic, category)
-            subtopic_display = FileManager.get_subtopic_display_name(topic, category, subtopic)
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+            subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
             await query.edit_message_text(
-                f"❌ No valid questions found for {topic_display} - {category_display} - {subtopic_display}"
+                f"❌ No valid questions found for:\n{year_display} - {term_display} - {block_display}\n{subject_display} - {category_display} - {subtopic_display}"
             )
             return False
         
@@ -65,18 +68,27 @@ class QuizManager:
             "questions": questions,
             "current_question": 0,
             "correct_answers": 0,
-            "topic": topic,
+            "year": year,
+            "term": term,
+            "block": block,
+            "subject": subject,
             "category": category,
             "subtopic": subtopic,
             "chat_id": query.message.chat_id,
         })
         
-        topic_display = FileManager.get_topic_display_name(topic)
-        category_display = FileManager.get_category_display_name(topic, category)
-        subtopic_display = FileManager.get_subtopic_display_name(topic, category, subtopic)
+        year_display = FileManager.get_year_display_name(year)
+        term_display = FileManager.get_term_display_name(year, term)
+        block_display = FileManager.get_block_display_name(year, term, block)
+        subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+        category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+        subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
         
         await query.edit_message_text(
-            f"🎯 Starting {topic_display} - {category_display} - {subtopic_display} quiz!\n\n"
+            f"🎯 Starting Quiz!\n\n"
+            f"📅 {year_display} - {term_display} - {block_display}\n"
+            f"📚 {subject_display} - {category_display}\n"
+            f"🧩 {subtopic_display}\n\n"
             f"• Total questions: {len(questions)}\n"
             f"• Answer choices are shuffled\n"
             f"• No time limits\n\n"
@@ -236,25 +248,30 @@ class QuizManager:
         else:
             performance = "📚 Keep studying! You'll get better! 💪"
         
+        # Save progress with all 6 levels
         self.db.save_user_progress(
             user_id=user.id,
-            topic=user_data["topic"],
-            subtopic=user_data["subtopic"],
+            topic=f"{user_data['year']}_{user_data['term']}_{user_data['block']}_{user_data['subject']}",
+            subtopic=f"{user_data['category']}_{user_data['subtopic']}",
             score=correct,
             total_questions=total
         )
         
-        topic_display = FileManager.get_topic_display_name(user_data["topic"])
-        category_display = FileManager.get_category_display_name(user_data["topic"], user_data["category"])
-        subtopic_display = FileManager.get_subtopic_display_name(user_data["topic"], user_data["category"], user_data["subtopic"])
+        # Get display names for results
+        year_display = FileManager.get_year_display_name(user_data["year"])
+        term_display = FileManager.get_term_display_name(user_data["year"], user_data["term"])
+        block_display = FileManager.get_block_display_name(user_data["year"], user_data["term"], user_data["block"])
+        subject_display = FileManager.get_subject_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"])
+        category_display = FileManager.get_category_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"], user_data["category"])
+        subtopic_display = FileManager.get_subtopic_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"], user_data["category"], user_data["subtopic"])
         
         results_text = (
             f"🎯 Quiz Completed!\n\n"
             f"{performance}\n\n"
-            f"📊 Final Score: {correct}/{total} ({percentage:.1f}%)\n"
-            f"📚 Topic: {topic_display}\n"
-            f"📂 Category: {category_display}\n"
-            f"🧩 Subtopic: {subtopic_display}\n\n"
+            f"📊 Final Score: {correct}/{total} ({percentage:.1f}%)\n\n"
+            f"📅 {year_display} - {term_display} - {block_display}\n"
+            f"📚 {subject_display} - {category_display}\n"
+            f"🧩 {subtopic_display}\n\n"
             f"Use /start to try another quiz!"
         )
         
