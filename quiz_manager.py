@@ -43,10 +43,34 @@ class QuizManager:
         
         return shuffled_question
 
-    async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic: str):
+    def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
+        """Convert subtopic number back to actual filename"""
+        subtopics = FileManager.list_subtopics(year, term, block, subject, category)
+        print(f"🔍 Looking for subtopic {subtopic_number} in: {subtopics}")
+        
+        for filename in subtopics:
+            # Check if filename starts with the number (with underscore)
+            if filename.startswith(f"{subtopic_number}_"):
+                print(f"✅ Found matching file: {filename}")
+                return filename
+            
+            # Also check if the number part matches (without leading zeros)
+            if filename.split('_')[0].lstrip('0') == subtopic_number.lstrip('0'):
+                print(f"✅ Found matching file (number only): {filename}")
+                return filename
+        
+        print(f"❌ No file found for subtopic number: {subtopic_number}")
+        return subtopic_number  # Fallback
+
+    async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str):
         """Start a new quiz with 6-level navigation"""
         query = update.callback_query
-        questions = FileManager.load_questions(year, term, block, subject, category, subtopic)
+        
+        # Convert number back to actual filename
+        actual_filename = self._get_subtopic_filename(year, term, block, subject, category, subtopic_number)
+        print(f"📁 Loading questions for file: {actual_filename}")
+        
+        questions = FileManager.load_questions(year, term, block, subject, category, actual_filename)
         
         if not questions:
             year_display = FileManager.get_year_display_name(year)
@@ -54,9 +78,17 @@ class QuizManager:
             block_display = FileManager.get_block_display_name(year, term, block)
             subject_display = FileManager.get_subject_display_name(year, term, block, subject)
             category_display = FileManager.get_category_display_name(year, term, block, subject, category)
-            subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
+            subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, actual_filename)
+            
+            print(f"❌ No questions found for: {year}/{term}/{block}/{subject}/{category}/{actual_filename}")
+            print(f"   File path: data/{year}/{term}/{block}/{subject}/{category}/{actual_filename}")
+            
             await query.edit_message_text(
-                f"❌ No valid questions found for:\n{year_display} - {term_display} - {block_display}\n{subject_display} - {category_display} - {subtopic_display}"
+                f"❌ No valid questions found for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display} - {category_display}\n"
+                f"🧩 {subtopic_display}\n\n"
+                f"Please check if the CSV file exists and has the correct format."
             )
             return False
         
@@ -73,7 +105,7 @@ class QuizManager:
             "block": block,
             "subject": subject,
             "category": category,
-            "subtopic": subtopic,
+            "subtopic": actual_filename,  # Store actual filename
             "chat_id": query.message.chat_id,
         })
         
@@ -82,7 +114,7 @@ class QuizManager:
         block_display = FileManager.get_block_display_name(year, term, block)
         subject_display = FileManager.get_subject_display_name(year, term, block, subject)
         category_display = FileManager.get_category_display_name(year, term, block, subject, category)
-        subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
+        subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, actual_filename)
         
         await query.edit_message_text(
             f"🎯 Starting Quiz!\n\n"
