@@ -1,5 +1,5 @@
 """
-File management for numbered CSV files
+File management for 6-level navigation structure
 """
 import os
 import csv
@@ -13,7 +13,156 @@ from utils import sanitize_text
 logger = logging.getLogger(__name__)
 
 class FileManager:
-    # ... (keep all the navigation methods the same: list_years, list_terms, etc.)
+    @staticmethod
+    @lru_cache(maxsize=32)
+    def list_years() -> List[str]:
+        """Get list of available years from data directory"""
+        data_dir = CONFIG["data_dir"]
+        if not os.path.exists(data_dir):
+            return []
+        
+        years = [d for d in os.listdir(data_dir) 
+                if os.path.isdir(os.path.join(data_dir, d)) 
+                and not d.startswith('.')
+                and d in NAVIGATION_STRUCTURE]
+        return sorted(years)
+    
+    @staticmethod
+    def get_year_display_name(year: str) -> str:
+        """Get display name for year"""
+        return NAVIGATION_STRUCTURE.get(year, {}).get("display_name", year.replace('_', ' ').title())
+    
+    @staticmethod
+    @lru_cache(maxsize=64)
+    def list_terms(year: str) -> List[str]:
+        """Get list of available terms for a year"""
+        if year not in NAVIGATION_STRUCTURE or "terms" not in NAVIGATION_STRUCTURE[year]:
+            return []
+        
+        year_path = os.path.join(CONFIG["data_dir"], year)
+        if not os.path.exists(year_path):
+            return []
+        
+        terms = [t for t in os.listdir(year_path) 
+                if os.path.isdir(os.path.join(year_path, t))
+                and not t.startswith('.')
+                and t in NAVIGATION_STRUCTURE[year]["terms"]]
+        return sorted(terms)
+    
+    @staticmethod
+    def get_term_display_name(year: str, term: str) -> str:
+        """Get display name for term"""
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["display_name"]
+        return term.replace('_', ' ').title()
+    
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def list_blocks(year: str, term: str) -> List[str]:
+        """Get list of available blocks for a term"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"]):
+            return []
+        
+        term_path = os.path.join(CONFIG["data_dir"], year, term)
+        if not os.path.exists(term_path):
+            return []
+        
+        blocks = [b for b in os.listdir(term_path)
+                 if os.path.isdir(os.path.join(term_path, b))
+                 and not b.startswith('.')
+                 and "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term]
+                 and b in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]]
+        return sorted(blocks)
+    
+    @staticmethod
+    def get_block_display_name(year: str, term: str, block: str) -> str:
+        """Get display name for block"""
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"] and
+            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
+            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["display_name"]
+        return block.replace('_', ' ').title()
+    
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def list_subjects(year: str, term: str, block: str) -> List[str]:
+        """Get list of available subjects for a block"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"] or
+            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
+            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
+            return []
+        
+        block_path = os.path.join(CONFIG["data_dir"], year, term, block)
+        if not os.path.exists(block_path):
+            return []
+        
+        subjects = [s for s in os.listdir(block_path)
+                   if os.path.isdir(os.path.join(block_path, s))
+                   and not s.startswith('.')
+                   and "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]
+                   and s in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]]
+        return sorted(subjects)
+    
+    @staticmethod
+    def get_subject_display_name(year: str, term: str, block: str, subject: str) -> str:
+        """Get display name for subject"""
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"] and
+            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
+            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] and
+            "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] and
+            subject in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["display_name"]
+        return subject.title()
+    
+    @staticmethod
+    @lru_cache(maxsize=512)
+    def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
+        """Get list of available categories for a subject"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"] or
+            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
+            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] or
+            "subjects" not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] or
+            subject not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
+            return []
+        
+        subject_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
+        if not os.path.exists(subject_path):
+            return []
+        
+        categories = [c for c in os.listdir(subject_path)
+                     if os.path.isdir(os.path.join(subject_path, c))
+                     and not c.startswith('.')
+                     and "categories" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]
+                     and c in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]]
+        return sorted(categories)
+    
+    @staticmethod
+    def get_category_display_name(year: str, term: str, block: str, subject: str, category: str) -> str:
+        """Get display name for category"""
+        structure = NAVIGATION_STRUCTURE
+        if (year in structure and 
+            "terms" in structure[year] and
+            term in structure[year]["terms"] and
+            "blocks" in structure[year]["terms"][term] and
+            block in structure[year]["terms"][term]["blocks"] and
+            "subjects" in structure[year]["terms"][term]["blocks"][block] and
+            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
+            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["display_name"]
+        return category.title()
     
     @staticmethod
     @lru_cache(maxsize=1024)
@@ -93,7 +242,7 @@ class FileManager:
             logger.error(f"❌ Path not in navigation structure: {year}/{term}/{block}/{subject}/{category}/{subtopic}")
             return []
         
-        # Construct file path - subtopic is already the numbered filename
+        # Construct file path - subtopic is already the filename
         file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
         
         logger.info(f"📁 Loading questions from: {file_path}")
