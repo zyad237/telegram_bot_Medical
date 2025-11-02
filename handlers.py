@@ -41,8 +41,68 @@ class BotHandlers:
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
     
-    # ... (keep help_command, stats_command, cancel_command the same)
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /help command"""
+        help_text = (
+            "🤖 Medical Quiz Bot Help\n\n"
+            "📚 Available Commands:\n"
+            "• /start - Start the bot and select quiz\n"
+            "• /stats - View your quiz statistics\n"
+            "• /cancel - Cancel current quiz\n"
+            "• /help - Show this help message\n\n"
+            "🎯 How to Use:\n"
+            "1. Use /start to begin\n"
+            "2. Navigate: Year → Term → Block → Subject → Category → Quiz\n"
+            "3. Answer questions at your own pace\n"
+            "4. View your results at the end\n\n"
+            "📖 Navigation:\n"
+            "• Years: Academic years (Year 1, Year 2, etc.)\n"
+            "• Terms: Semester terms\n"
+            "• Blocks: Curriculum blocks\n"
+            "• Subjects: Anatomy, Histology, etc.\n"
+            "• Categories: General, Midterm, Final, Formative\n"
+            "• Quizzes: Individual topic quizzes"
+        )
+        
+        await update.message.reply_text(help_text)
     
+    async def stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /stats command"""
+        user = update.effective_user
+        stats = self.db.get_user_stats(user.id)
+        
+        if stats['total_quizzes'] == 0:
+            await update.message.reply_text("📊 You haven't completed any quizzes yet!\nUse /start to begin your first quiz.")
+            return
+        
+        stats_text = (
+            f"📊 Your Quiz Statistics\n\n"
+            f"• Total Quizzes Completed: {stats['total_quizzes']}\n"
+            f"• Average Score: {stats['average_score']}%\n\n"
+            f"Keep up the great work! 🎯"
+        )
+        
+        await update.message.reply_text(stats_text)
+    
+    async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /cancel command"""
+        user_data = context.user_data
+        
+        if user_data.get("quiz_active"):
+            try:
+                if user_data.get("active_poll_id"):
+                    await context.bot.stop_poll(
+                        chat_id=user_data["chat_id"],
+                        message_id=user_data.get("poll_message_id")
+                    )
+            except Exception as e:
+                logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
+            
+            user_data.clear()
+            await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
+        else:
+            await update.message.reply_text("ℹ️ No active quiz to cancel.")
+
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all callback queries"""
         query = update.callback_query
