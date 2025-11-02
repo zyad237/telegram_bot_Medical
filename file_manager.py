@@ -1,122 +1,92 @@
 """
-File and data management with nested structure
+File management for medical curriculum structure
 """
 import os
 import csv
 import logging
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from functools import lru_cache
 
-from config import CONFIG, TOPIC_DISPLAY_NAMES, NESTED_STRUCTURE
-from utils import validate_topic_name, validate_subtopic_name, sanitize_text
+from config import CONFIG, NAVIGATION_STRUCTURE
+from utils import sanitize_text
 
 logger = logging.getLogger(__name__)
 
 class FileManager:
+    # ... (keep all the list_years, list_terms, list_blocks, list_subjects, list_categories methods the same)
+    
     @staticmethod
-    @lru_cache(maxsize=32)
-    def list_topics() -> List[str]:
-        """Get list of available topics from data directory"""
-        data_dir = CONFIG["data_dir"]
-        if not os.path.exists(data_dir):
+    @lru_cache(maxsize=1024)
+    def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
+        """Get list of available subtopics for a category - using actual filenames"""
+        structure = NAVIGATION_STRUCTURE
+        if (year not in structure or 
+            "terms" not in structure[year] or
+            term not in structure[year]["terms"] or
+            "blocks" not in structure[year]["terms"][term] or
+            block not in structure[year]["terms"][term]["blocks"] or
+            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
+            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
+            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
+            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
             return []
         
-        topics = [d for d in os.listdir(data_dir) 
-                 if os.path.isdir(os.path.join(data_dir, d)) 
-                 and not d.startswith('.')
-                 and d in TOPIC_DISPLAY_NAMES]
-        return sorted(topics)
-    
-    @staticmethod
-    def get_topic_display_name(topic: str) -> str:
-        """Get manual display name for topic"""
-        return TOPIC_DISPLAY_NAMES.get(topic, topic.title())
-    
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def list_categories(topic: str) -> List[str]:
-        """Get list of available categories for a topic"""
-        if not validate_topic_name(topic) or topic not in NESTED_STRUCTURE:
-            return []
-            
-        topic_path = os.path.join(CONFIG["data_dir"], topic)
-        if not os.path.exists(topic_path):
-            return []
-        
-        # Only return categories that exist in both directory and nested structure
-        categories = []
-        for item in os.listdir(topic_path):
-            item_path = os.path.join(topic_path, item)
-            if os.path.isdir(item_path) and not item.startswith('.'):
-                if topic in NESTED_STRUCTURE and item in NESTED_STRUCTURE[topic]:
-                    categories.append(item)
-        
-        return sorted(categories)
-    
-    @staticmethod
-    def get_category_display_name(topic: str, category: str) -> str:
-        """Get display name for category"""
-        if (topic in NESTED_STRUCTURE and 
-            category in NESTED_STRUCTURE[topic]):
-            return NESTED_STRUCTURE[topic][category]["display_name"]
-        return category.title()
-    
-    @staticmethod
-    @lru_cache(maxsize=256)
-    def list_subtopics(topic: str, category: str) -> List[str]:
-        """Get list of available subtopics for a category"""
-        if (not validate_topic_name(topic) or 
-            topic not in NESTED_STRUCTURE or 
-            category not in NESTED_STRUCTURE[topic]):
-            return []
-            
-        category_path = os.path.join(CONFIG["data_dir"], topic, category)
+        category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
         if not os.path.exists(category_path):
             return []
         
-        # Only return subtopics that exist in both directory and nested structure
         subtopics = []
         for file in os.listdir(category_path):
             if file.endswith('.csv') and not file.startswith('.'):
-                subtopic_name = file[:-4]  # Remove .csv extension
-                if (validate_subtopic_name(subtopic_name) and 
-                    "subtopics" in NESTED_STRUCTURE[topic][category] and
-                    subtopic_name in NESTED_STRUCTURE[topic][category]["subtopics"]):
-                    subtopics.append(subtopic_name)
+                # Use the actual filename as the subtopic key
+                if ("subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
+                    file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
+                    subtopics.append(file)  # Store the full filename
         
         return sorted(subtopics)
     
     @staticmethod
-    def get_subtopic_display_name(topic: str, category: str, subtopic: str) -> str:
-        """Get display name for subtopic"""
-        if (topic in NESTED_STRUCTURE and 
-            category in NESTED_STRUCTURE[topic] and
-            "subtopics" in NESTED_STRUCTURE[topic][category] and
-            subtopic in NESTED_STRUCTURE[topic][category]["subtopics"]):
-            return NESTED_STRUCTURE[topic][category]["subtopics"][subtopic]
-        return subtopic.title()
+    def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
+        """Get display name for subtopic - subtopic is the actual filename"""
+        structure = NAVIGATION_STRUCTURE
+        if (year in structure and 
+            "terms" in structure[year] and
+            term in structure[year]["terms"] and
+            "blocks" in structure[year]["terms"][term] and
+            block in structure[year]["terms"][term]["blocks"] and
+            "subjects" in structure[year]["terms"][term]["blocks"][block] and
+            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
+            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] and
+            "subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
+            subtopic in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
+            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"][subtopic]
+        
+        # Fallback: remove .csv and format the filename
+        return subtopic[:-4].replace('_', ' ').title()
     
     @staticmethod
-    def load_questions(topic: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file in nested directory structure"""
-        # Security validation
-        if (not validate_topic_name(topic) or 
-            not validate_subtopic_name(category) or 
-            not validate_subtopic_name(subtopic)):
-            logger.error(f"❌ Invalid names: {topic}/{category}/{subtopic}")
-            return []
-            
-        # Check if this topic/category/subtopic exists in nested structure
-        if (topic not in NESTED_STRUCTURE or 
-            category not in NESTED_STRUCTURE[topic] or
-            "subtopics" not in NESTED_STRUCTURE[topic][category] or
-            subtopic not in NESTED_STRUCTURE[topic][category]["subtopics"]):
-            logger.error(f"❌ Not in nested structure: {topic}/{category}/{subtopic}")
+    def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
+        """Load questions from CSV file - subtopic is the actual filename"""
+        structure = NAVIGATION_STRUCTURE
+        
+        # Check if this path exists in navigation structure
+        if (year not in structure or 
+            "terms" not in structure[year] or
+            term not in structure[year]["terms"] or
+            "blocks" not in structure[year]["terms"][term] or
+            block not in structure[year]["terms"][term]["blocks"] or
+            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
+            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
+            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
+            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] or
+            "subtopics" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] or
+            subtopic not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
+            logger.error(f"❌ Path not in navigation structure: {year}/{term}/{block}/{subject}/{category}/{subtopic}")
             return []
         
-        # Construct file path from nested directory structure
-        filename = f"{subtopic}.csv"
-        file_path = os.path.join(CONFIG["data_dir"], topic, category, filename)
+        # Construct file path - subtopic is already the filename
+        file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
         
         logger.info(f"📁 Loading questions from: {file_path}")
         

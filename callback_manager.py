@@ -1,5 +1,5 @@
 """
-Callback data management for nested structure
+Callback data management for medical curriculum
 """
 import re
 import logging
@@ -12,31 +12,63 @@ class CallbackManager:
     
     @staticmethod
     def sanitize_callback_text(text: str) -> str:
-        """Sanitize text for safe callback data - preserve original case"""
-        sanitized = re.sub(r'[^\w\s-]', '', text)
+        """Sanitize text for safe callback data"""
+        # For filenames with spaces, replace spaces with underscores
+        sanitized = text.replace(' ', '_')
+        sanitized = re.sub(r'[^\w\s-]', '', sanitized)
         sanitized = re.sub(r'[-\s]+', '_', sanitized)
         return sanitized
     
     @staticmethod
-    def create_topic_callback(topic: str) -> str:
-        """Create safe topic callback data"""
-        safe_topic = CallbackManager.sanitize_callback_text(topic)
-        return f"t:{safe_topic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+    def create_year_callback(year: str) -> str:
+        """Create year callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        return f"y:{safe_year}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
-    def create_category_callback(topic: str, category: str) -> str:
-        """Create safe category callback data"""
-        safe_topic = CallbackManager.sanitize_callback_text(topic)
+    def create_term_callback(year: str, term: str) -> str:
+        """Create term callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        return f"t:{safe_year}:{safe_term}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+    
+    @staticmethod
+    def create_block_callback(year: str, term: str, block: str) -> str:
+        """Create block callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        safe_block = CallbackManager.sanitize_callback_text(block)
+        return f"b:{safe_year}:{safe_term}:{safe_block}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+    
+    @staticmethod
+    def create_subject_callback(year: str, term: str, block: str, subject: str) -> str:
+        """Create subject callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        safe_block = CallbackManager.sanitize_callback_text(block)
+        safe_subject = CallbackManager.sanitize_callback_text(subject)
+        return f"s:{safe_year}:{safe_term}:{safe_block}:{safe_subject}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+    
+    @staticmethod
+    def create_category_callback(year: str, term: str, block: str, subject: str, category: str) -> str:
+        """Create category callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        safe_block = CallbackManager.sanitize_callback_text(block)
+        safe_subject = CallbackManager.sanitize_callback_text(subject)
         safe_category = CallbackManager.sanitize_callback_text(category)
-        return f"c:{safe_topic}:{safe_category}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+        return f"c:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
-    def create_subtopic_callback(topic: str, category: str, subtopic: str) -> str:
-        """Create safe subtopic callback data"""
-        safe_topic = CallbackManager.sanitize_callback_text(topic)
+    def create_subtopic_callback(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
+        """Create subtopic callback data - subtopic is filename"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        safe_block = CallbackManager.sanitize_callback_text(block)
+        safe_subject = CallbackManager.sanitize_callback_text(subject)
         safe_category = CallbackManager.sanitize_callback_text(category)
         safe_subtopic = CallbackManager.sanitize_callback_text(subtopic)
-        return f"s:{safe_topic}:{safe_category}:{safe_subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+        return f"q:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}:{safe_subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
     def parse_callback_data(callback_data: str) -> Optional[Dict]:
@@ -44,16 +76,28 @@ class CallbackManager:
         try:
             if callback_data == "main_menu":
                 return {"type": "main_menu"}
+            elif callback_data.startswith("y:"):
+                return {"type": "year", "year": callback_data[2:]}
             elif callback_data.startswith("t:"):
-                return {"type": "topic", "topic": callback_data[2:]}
-            elif callback_data.startswith("c:"):
                 parts = callback_data.split(":", 2)
                 if len(parts) >= 3:
-                    return {"type": "category", "topic": parts[1], "category": parts[2]}
-            elif callback_data.startswith("s:"):
+                    return {"type": "term", "year": parts[1], "term": parts[2]}
+            elif callback_data.startswith("b:"):
                 parts = callback_data.split(":", 3)
                 if len(parts) >= 4:
-                    return {"type": "subtopic", "topic": parts[1], "category": parts[2], "subtopic": parts[3]}
+                    return {"type": "block", "year": parts[1], "term": parts[2], "block": parts[3]}
+            elif callback_data.startswith("s:"):
+                parts = callback_data.split(":", 4)
+                if len(parts) >= 5:
+                    return {"type": "subject", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4]}
+            elif callback_data.startswith("c:"):
+                parts = callback_data.split(":", 5)
+                if len(parts) >= 6:
+                    return {"type": "category", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4], "category": parts[5]}
+            elif callback_data.startswith("q:"):
+                parts = callback_data.split(":", 6)
+                if len(parts) >= 7:
+                    return {"type": "subtopic", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4], "category": parts[5], "subtopic": parts[6]}
         except Exception as e:
             logger.error(f"Error parsing callback data: {e}")
         return None
