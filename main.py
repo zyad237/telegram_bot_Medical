@@ -75,23 +75,33 @@ def main():
         bot_handlers.register_handlers(application)
         application.add_error_handler(error_handler)
         
-        # Log available topics and categories
-        topics = FileManager.list_topics()
-        if topics:
-            logger.info(f"📚 Available topics: {', '.join(topics)}")
-            for topic in topics:
-                categories = FileManager.list_categories(topic)
-                if categories:
-                    logger.info(f"   {topic}: {len(categories)} categories")
-                    for category in categories:
-                        subtopics = FileManager.list_subtopics(topic, category)
-                        if subtopics:
-                            logger.info(f"     {category}: {len(subtopics)} subtopics")
+        # Log available years and structure
+        years = FileManager.list_years()
+        if years:
+            logger.info(f"📚 Available years: {', '.join(years)}")
+            for year in years:
+                terms = FileManager.list_terms(year)
+                if terms:
+                    logger.info(f"   {year}: {len(terms)} terms")
+                    for term in terms:
+                        blocks = FileManager.list_blocks(year, term)
+                        if blocks:
+                            logger.info(f"     {term}: {len(blocks)} blocks")
+                            for block in blocks:
+                                subjects = FileManager.list_subjects(year, term, block)
+                                if subjects:
+                                    logger.info(f"       {block}: {len(subjects)} subjects")
+                                    for subject in subjects:
+                                        categories = FileManager.list_categories(year, term, block, subject)
+                                        if categories:
+                                            logger.info(f"         {subject}: {len(categories)} categories")
         else:
-            logger.warning("⚠️ No quiz data found in data folder")
+            logger.warning("⚠️ No academic data found in data folder")
+            logger.info("💡 Please check your data directory structure:")
+            logger.info("   data/year_1/term_1/block_1/subject/category/")
         
         # Start the bot
-        logger.info("🤖 Quiz Bot is starting...")
+        logger.info("🤖 Medical Quiz Bot is starting...")
         
         application.run_polling(
             allowed_updates=['message', 'callback_query', 'poll_answer'],
