@@ -46,20 +46,30 @@ class QuizManager:
     def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
         """Convert subtopic number back to actual filename"""
         subtopics = FileManager.list_subtopics(year, term, block, subject, category)
-        print(f"🔍 Looking for subtopic {subtopic_number} in: {subtopics}")
+        print(f"🔍 Looking for subtopic '{subtopic_number}' in category '{category}'")
+        print(f"   Available files: {subtopics}")
         
+        # Handle case where subtopic_number might already be a filename
+        if subtopic_number in subtopics:
+            print(f"✅ Exact match found: {subtopic_number}")
+            return subtopic_number
+        
+        # Look for files starting with the number
         for filename in subtopics:
-            # Check if filename starts with the number (with underscore)
+            # Check if filename starts with number_ pattern
             if filename.startswith(f"{subtopic_number}_"):
                 print(f"✅ Found matching file: {filename}")
                 return filename
             
-            # Also check if the number part matches (without leading zeros)
-            if filename.split('_')[0].lstrip('0') == subtopic_number.lstrip('0'):
+            # Also check without leading zeros
+            file_number = filename.split('_')[0].lstrip('0')
+            input_number = subtopic_number.lstrip('0')
+            if file_number == input_number:
                 print(f"✅ Found matching file (number only): {filename}")
                 return filename
         
         print(f"❌ No file found for subtopic number: {subtopic_number}")
+        print(f"   Available files: {subtopics}")
         return subtopic_number  # Fallback
 
     async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str):
