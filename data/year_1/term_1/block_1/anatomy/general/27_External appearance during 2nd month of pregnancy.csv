@@ -1,51 +1,65 @@
-Question,Option1,Option2,Option3,Option4,Correct Answer
-At the end of the 4th week the embryo's age is often expressed by the number of...,Limb buds,Pharyngeal arches,Somites,Heartbeats,Somites
-During the second month the embryo's age is best expressed by...,Somite count,Crown-rump length CRL,Weight,Head circumference,Crown-rump length CRL
-CRL stands for...,Crown-rump length,Cranial-radial length,Cervical-rib length,Cephalic-rudimentary length,Crown-rump length
-CRL is measured from the vertex of the skull to the...,Tip of the toes,Heel,Midpoint between the apices of the buttocks,Public symphysis,Midpoint between the apices of the buttocks
-By the end of the 2nd month 8th week all vital organs are...,Fully functional,Just beginning to form,Formed but not functional,Not present,Formed but not functional
-During the second month the head is large forming about __________ of the body length.,One-quarter,One-third,One-half,Two-thirds,One-half
-During the second month the eyes ears and nose are...,Fully formed,Not developed,Developing,Regressing,Developing
-The neck region becomes established during the...,First month,Second month,Third month,Fourth month,Second month
-Physiological umbilical hernia occurs due to rapid growth of the...,Heart,Liver,Brain,Intestine,Intestine
-Physiological hernia is present by the __________ week of pregnancy.,4th,6th,8th,10th,6th
-Physiological hernia is normally reduced by the __________ week.,6th,8th,10th,12th,10th
-By the end of the 2nd month the heart is...,A simple tube,Formed with septa valves and beating rhythmically,Not developed,Just a bulge,Formed with septa valves and beating rhythmically
-External genitalia are present by the 8th week but the sex is...,Clearly male,Clearly female,Not distinguishable by ultrasound,Easily distinguishable,Not distinguishable by ultrasound
-The primitive tail is present in the early embryo but it...,Grows longer,Persists into adulthood,Regresses,Becomes the legs,Regresses
-The placenta is fully developed by the __________ week.,4th,6th,8th,10th,8th
-The length of the embryo at the end of the 2nd month is about...,5 mm,10 mm,25 mm 1 inch,50 mm,25 mm 1 inch
-The weight of the embryo at the end of the 2nd month is less than...,1 gm,10 gm,50 gm,100 gm,10 gm
-The upper limb shows segments for shoulder elbow and...,Knee,Ankle,Wrist,Hip,Wrist
-Digital rays for fingers are present by the __________ week.,4th,6th,8th,10th,8th
-The lower limb shows segments for hip knee and...,Elbow,Wrist,Ankle,Shoulder,Ankle
-Primary ossification centers appear in the limb bones by the __________ week.,6th,8th,10th,12th,8th
-The face becomes more human-like during the...,First month,Second month,Third month,Fourth month,Second month
-The eyes which are initially directed laterally move to the __________ aspect of the face.,Dorsal,Ventral,Lateral,Posterior,Ventral
-The ears come to lie close to their definitive position at the __________ of the head.,Top,Front,Side,Back,Side
-The midgut loops withdraw into the abdominal cavity reducing the physiological hernia by the __________ week.,6th,8th,10th,12th,10th
-The embryo is most susceptible to teratogens during the...,First two weeks,Embryonic period 3rd-8th week,Fetal period,Last trimester,Embryonic period 3rd-8th week
-By the 8th week the embryo is officially called a...,Zygote,Blastocyst,Embryo,Fetus,Fetus
-The transition from embryo to fetus occurs at the end of the __________ week.,4th,8th,12th,16th,8th
-The limb buds first appear as small swellings during the __________ week.,3rd,4th,5th,6th,4th
-The hand plates and foot plates are formed by the __________ week.,5th,6th,7th,8th,6th
-Finger and toe separation digit separation occurs by the __________ week.,6th,7th,8th,9th,8th
-The head growth is rapid due to development of the...,Heart,Liver,Brain,Intestines,Brain
-The face is formed by the fusion of several...,Somites,Pharyngeal arches,Limb buds,Neural folds,Pharyngeal arches
-Cleft lip results from failure of fusion of the...,Limb buds,Neural folds,Maxillary and medial nasal processes,Somites,Maxillary and medial nasal processes
-The umbilical cord is clearly formed by the __________ week.,4th,6th,8th,10th,8th
-The body stalk is the precursor of the...,Placenta,Amnion,Umbilical cord,Yolk sac,Umbilical cord
-By the end of the 2nd month the embryo has a distinct...,Tail,Limbless appearance,Human appearance,Animal-like appearance,Human appearance
-The rate of growth is extremely rapid during the...,Fetal period,Embryonic period,Neonatal period,Germinal period,Embryonic period
-The cardiovascular system is the first __________ system to become functional.,Nervous,Digestive,Respiratory,Muscular,Muscular
-The liver is a major site of __________ production in the embryo.,Urine,Blood cells,Neurons,Muscle,Blood cells
-The kidneys begin to form but are not fully functional until...,The embryonic period,The fetal period,After birth,During childhood,The fetal period
-The diaphragm is formed by the __________ week.,4th,6th,8th,10th,8th
-The external auditory meatus is formed by the __________ week.,6th,8th,10th,12th,8th
-The eyelids form but fuse shut by the __________ week.,6th,8th,10th,12th,8th
-The nose and nostrils are formed by the __________ week.,6th,8th,10th,12th,8th
-The neck is elongated and the head is more erect by the __________ week.,6th,8th,10th,12th,8th
-The trunk becomes straighter and longer during the...,First month,Second month,Third month,Fourth month,Second month
-The umbilical cord contains two arteries and one vein by the __________ week.,4th,6th,8th,10th,8th
-The chorionic villi are well formed and functional by the __________ week.,4th,6th,8th,10th,8th
-The embryo is capable of spontaneous movement by the __________ week.,6th,8th,10th,12th,8th
+Question, Option1, Option2, Option3, Option4, Correct Answer
+At the end of the 4th week the embryo has approximately how many somites, 10, 20, 30, 40, C
+The main external features in the 4th week are the somites and, Limb buds, Pharyngeal arches, Eyes, Ears, B
+The age of the embryo is often expressed in, Weight, Somites, Length, Volume, B
+During the second month counting somites becomes difficult so is used instead, Weight, Crown-rump length, Head circumference, Foot length, B
+Crown-rump length is measured from the vertex of the skull to the, Top of the head, Midpoint between the apices of the buttocks, Tip of the toes, End of the spine, B
+By the end of the 2nd month all vital organs are, Fully functional, Formed, Degenerated, Absent, B
+The head is large and forms about half of the, Body weight, Body length, Body volume, Body surface, B
+The eyes ears and nose are developing during the, First month, Second month, Third month, Fourth month, B
+The neck region is established during the, First month, Second month, Third month, Fourth month, B
+Physiological hernia is present in the proximal part of the, Head, Umbilical cord, Limb buds, Tail, B
+Physiological hernia occurs due to rapid growth of the, Heart, Intestine, Liver, Lungs, B
+Physiological hernia bulges through the umbilical ring by the, 4th week, 6th week, 8th week, 10th week, B
+The physiological hernia is reduced by the, 8th week, 10th week, 12th week, 14th week, B
+The heart is formed with its septa and valves and is, Beating rhythmically, Still developing, Not functioning, Absent, A
+External genitalia are present but sex is not distinguishable by, Naked eye, Ultrasound, MRI, X-ray, B
+The primitive tail is, Growing, Regressing, Absent, Functional, B
+The placenta is fully developed by the, First month, Second month, Third month, Fourth month, B
+The length of the embryo at the end of the 2nd month is about, 10 mm, 25 mm, 50 mm, 75 mm, B
+The weight of the embryo at the end of the 2nd month is less than, 1 gm, 5 gm, 10 gm, 20 gm, C
+The upper limb has segments: shoulder elbow and, Wrist, Ankle, Knee, Hip, A
+The lower limb has segments: hip knee and, Elbow, Wrist, Ankle, Shoulder, C
+Five digital rays form for the, Ears, Eyes, Fingers, Toes, C
+Primary ossification centers for limbs appear by the, Sixth week, Seventh week, Eighth week, Ninth week, C
+The face becomes more human-looking during the, First month, Second month, Third month, Fourth month, B
+The eyes initially directed laterally move to the aspect, Dorsal, Ventral, Lateral, Caudal, B
+The ears come to lie close to their definitive position at the side of the, Neck, Head, Chest, Abdomen, B
+Primary ossification centers are present in the long bones and skull by the, 8th week, 10th week, 12th week, 14th week, C
+External genitalia are developed and could be determined by ultrasound during the, First month, Second month, Third month, Fourth month, C
+The midgut loops withdraw into the abdominal cavity by the, 8th week, 10th week, 12th week, 14th week, B
+The crown-rump length during the fetal period is used to estimate, Weight, Age, Sex, Health, B
+At 3 months the CRL is about, 5 cm, 10 cm, 15 cm, 20 cm, A
+At 4 months the CRL is about, 5 cm, 10 cm, 15 cm, 20 cm, B
+At 5 months the CRL is about, 10 cm, 15 cm, 20 cm, 25 cm, B
+At 6 months the CRL is about, 15 cm, 20 cm, 25 cm, 30 cm, B
+At 7 months the CRL is about, 20 cm, 25 cm, 30 cm, 35 cm, B
+At 8 months the CRL is about, 25 cm, 30 cm, 33 cm, 36 cm, B
+At 9 months the CRL is about, 30 cm, 33 cm, 36 cm, 39 cm, B
+At full term the CRL is about, 33 cm, 36 cm, 39 cm, 42 cm, B
+The weight at 3 months is about, 50 gm, 100 gm, 150 gm, 200 gm, A
+The weight at 4 months is about, 50 gm, 100 gm, 150 gm, 200 gm, B
+The weight at 5 months is about, 150 gm, 250 gm, 350 gm, 450 gm, B
+The weight at 6 months is about, 250 gm, 500 gm, 750 gm, 1000 gm, B
+The weight at 7 months is about, 500 gm, 1000 gm, 1500 gm, 2000 gm, B
+The weight at 8 months is about, 1000 gm, 1500 gm, 2000 gm, 2500 gm, B
+The weight at 9 months is about, 1500 gm, 2000 gm, 2500 gm, 3000 gm, C
+The weight at full term is about, 2500-3000 gm, 3000-3500 gm, 3500-4000 gm, 4000-4500 gm, B
+Lanugo hairs are fine soft unpigmented hairs covering the skin between, 3-5 months, 5-7 months, 7-9 months, 9-10 months, B
+Vernix caseosa is a fatty secretion that protects the fetus from, Infection, Amniotic fluid maceration, UV radiation, Dehydration, B
+Vernix caseosa is described as, Watery, Whitish like toothpaste, Greenish, Bloody, B
+At birth the crown-heel length is about, 36 cm, 40 cm, 45 cm, 50 cm, D
+At birth the testes should be in the, Abdomen, Inguinal canal, Scrotum, Bladder, C
+Sexual characteristics are pronounced at, Birth, 2 months, 6 months, 1 year, A
+The embryonic period ends at the, 4th week, 8th week, 12th week, 16th week, B
+The fetal period begins at the, 8th week, 12th week, 16th week, 20th week, A
+The second month is crucial for, Implantation, Organogenesis, Fertilization, Cleavage, B
+The embryo is most vulnerable to teratogens during the, First month, Second month, Third month, Fourth month, B
+The head size is large due to rapid development of the, Heart, Brain, Liver, Kidneys, B
+The limb buds appear as paddles by the, 4th week, 5th week, 6th week, 7th week, B
+The fingers and toes are separated by the, 6th week, 7th week, 8th week, 9th week, C
+The face becomes recognizably human by the, End of the first month, End of the second month, End of the third month, End of the fourth month, B
+The external ear is formed by the, 4th week, 6th week, 8th week, 10th week, C
+The eyes are closed until the, 6th month, 7th month, 8th month, 9th month, B
+The neck is clearly defined by the, 4th week, 6th week, 8th week, 10th week, C
+The body becomes more proportional during the, Fetal period, Embryonic period, Pre-implantation period, Postnatal period, A

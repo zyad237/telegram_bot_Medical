@@ -1,50 +1,72 @@
-Question,Option1,Option2,Option3,Option4,Correct Answer
-The intraembryonic mesoderm IEM is derived from the...,Hypoblast,Epiblast via the primitive streak,Trophoblast,Amnioblast,Epiblast via the primitive streak
-The IEM is absent at the site of the...,Neural tube,Heart,Oropharyngeal membrane,Somites,Oropharyngeal membrane
-The IEM is absent in the midline occupied by the...,Somites,Notochord primitive node and streak,Heart,Lungs,Notochord primitive node and streak
-The IEM is absent at the site of the...,Neural tube,Cloacal membrane,Amnion,Yolk sac,Cloacal membrane
-The IEM migrates between the...,Ectoderm and endoderm,Epiblast and hypoblast,Amnion and yolk sac,Trophoblast and embryoblast,Ectoderm and endoderm
-The IEM forms an inverted __________-shaped structure.,U,V,T,L,U
-Some IEM cells migrate cranial to the prechordal plate to form the...,Liver,Lungs,Heart cardiogenic area,Brain,Heart cardiogenic area
-Some IEM cells migrate anterior to the cardiogenic area to form the...,Limbs,Septum transversum future diaphragm,Kidneys,Gonads,Septum transversum future diaphragm
-The paraxial mesoderm is located...,Lateral to the intermediate mesoderm,Medial to the intermediate mesoderm,Medial to the notochord,Lateral to the lateral plate,Medial to the intermediate mesoderm
-The paraxial mesoderm becomes segmented into...,Somites,Neural tube,Notochord,Heart,Somites
-The first pair of somites appears around day...,14,18,20,25,20
-By the end of the 5th week there are __________ pairs of somites.,20-25,30-35,42-44,50-55,42-44
-How many occipital somites are there?,2,4,6,8,4
-How many cervical somites are there?,5,7,8,12,8
-How many thoracic somites are there?,5,7,12,13,12
-How many lumbar somites are there?,3,5,6,7,5
-How many sacral somites are there?,3,5,6,8,5
-How many coccygeal somites are there?,1-2,3-4,5-6,8-10,8-10
-The 1st occipital somite...,Forms the tongue muscles,Forms the occipital bone,Disappears,Forms the vertebrae,Disappears
-The 2nd 3rd and 4th occipital somites form most of the...,Face,Occipital bone of the skull,Thoracic vertebrae,Limbs,Occipital bone of the skull
-The 2nd 3rd and 4th occipital myotomes form muscles of the...,Face,Neck,Tongue,Back,Tongue
-Each somite differentiates into a...,Sclerotome and myotome,Sclerotome myotome and dermatome,Myotome and dermatome only,Sclerotome only,Sclerotome myotome and dermatome
-The sclerotome gives rise to...,Skin,Skeletal muscle,Vertebrae and ribs,The dermis,Vertebrae and ribs
-The myotome gives rise to...,Skin,Skeletal muscle,Vertebrae,The dermis,Skeletal muscle
-The dermatome gives rise to the...,Epidermis,Dermis of the skin,Muscles,Bones,Dermis of the skin
-The intermediate cell mass mesoderm is also called the...,Paraxial mesoderm,Lateral plate mesoderm,Nephrogenic cord,Cardiogenic area,Nephrogenic cord
-The intermediate mesoderm gives rise to most of the...,Nervous system,Genitourinary system,Digestive system,Respiratory system,Genitourinary system
-The lateral plate mesoderm splits into two layers by the formation of the...,Amniotic cavity,Yolk sac,Intraembryonic coelom,Chorionic cavity,Intraembryonic coelom
-The intraembryonic coelom has a __________ shape.,Round,Square,Inverted horseshoe,Linear,Inverted horseshoe
-The intraembryonic coelom gives rise to the...,Cranial cavity,Spinal canal,Pericardial pleural and peritoneal cavities,All body cavities,Pericardial pleural and peritoneal cavities
-The somatic parietal layer of lateral plate mesoderm is called...,Splanchnopleure,Somatopleure,Myotome,Dermatome,Somatopleure
-The somatopleure forms the...,Lining of the gut,Dermis of the ventrolateral trunk and limbs,Connective tissue of viscera,Smooth muscle,Dermis of the ventrolateral trunk and limbs
-The somatopleure forms the entire __________ skeleton.,Axial,Appendicular,Cranial,Facial,Appendibular
-The splanchnic visceral layer of lateral plate mesoderm is called...,Somatopleure,Splanchnopleure,Myotome,Sclerotome,Splanchnopleure
-The splanchnopleure forms...,The dermis of the limbs,Connective tissue smooth muscle and vessels of viscera,Skeletal muscle,Bones,Connective tissue smooth muscle and vessels of viscera
-The heart is derived from...,Neuroectoderm,Splanchnic mesoderm,Surface ectoderm,Endoderm,Splanchnic mesoderm
-The kidneys are derived from the...,Paraxial mesoderm,Intermediate mesoderm,Lateral plate mesoderm,Surface ectoderm,Intermediate mesoderm
-The adrenal cortex is derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The spleen is derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The cardiovascular system heart and blood vessels is derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The lymphatic system is derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The serous membranes of body cavities are derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The connective tissue cartilage and bone are derived from...,Ectoderm,Mesoderm,Endoderm,Neural crest,Mesoderm
-The extraembryonic mesoderm arises from the...,Epiblast,Hypoblast,Trophoblast,Amnioblast,Hypoblast
-The extraembryonic mesoderm surrounds the...,Embryo only,Amnion and yolk sac,Trophoblast only,Placenta only,Amnion and yolk sac
-The diaphragm is derived from the...,Septum transversum,Neural crest,Somites,Intermediate mesoderm,Septum transversum
-The dermis of the back is derived from the...,Surface ectoderm,Dermatomes of somites,Splanchnic mesoderm,Neural crest,Dermatomes of somites
-The limb bones are derived from the...,Somatopleure,Splanchnopleure,Intermediate mesoderm,Paraxial mesoderm,Somatopleure
-The smooth muscle of the gut is derived from the...,Somatopleure,Splanchnople
+Question, Option1, Option2, Option3, Option4, Correct Answer
+The intraembryonic mesoderm is derived from three sources: primitive streak primitive node and, Notochord, Ectoderm, Endoderm, Trophoblast, A
+Intraembryonic mesoderm is absent from the oropharyngeal membrane the midline and the, Limb buds, Cloacal membrane, Heart, Liver, B
+The intraembryonic mesoderm migrates between the, Ectoderm and trophoblast, Ectoderm and endoderm, Endoderm and trophoblast, Amnion and yolk sac, B
+The intraembryonic mesoderm forms an inverted structure, U-shaped, V-shaped, W-shaped, O-shaped, A
+Cells migrate cranial to the prechordal plate to form the, Septum transversum, Cardiogenic area, Neural tube, Pharyngeal arches, B
+Cells migrate anterior to the cardiogenic area to form the, Heart, Septum transversum, Liver, Lungs, B
+The septum transversum gives rise to the, Heart, Diaphragm, Liver, Brain, B
+The paraxial mesoderm is divided into paired masses called, Somites, Organs, Tissues, Cells, A
+The first pair of somites appears at day, 15, 20, 25, 30, B
+By the end of the fifth week there are how many pairs of somites, 30-32, 35-37, 40-42, 42-44, D
+The occipital somites number, 2, 3, 4, 5, C
+The cervical somites number, 5, 7, 8, 12, C
+The thoracic somites number, 7, 8, 12, 5, C
+The lumbar somites number, 5, 7, 8, 12, A
+The sacral somites number, 4, 5, 6, 7, B
+The coccygeal somites number, 1-2, 3-4, 5-6, 8-10, D
+The first occipital somite, Persists, Disappears, Forms bone, Forms muscle, B
+The 2nd 3rd and 4th occipital sclerotomes form most of the, Frontal bone, Occipital bone, Parietal bone, Temporal bone, B
+The 2nd 3rd and 4th occipital myotomes form muscles of the, Face, Tongue, Neck, Back, B
+The intermediate cell mass is also called the, Paraxial mesoderm, Nephrogenic cord, Lateral plate, Somite, B
+The nephrogenic cord gives rise to most of the, Nervous system, Genitourinary system, Digestive system, Respiratory system, B
+The lateral plate mesoderm develops cavities that form the, Neural tube, Intraembryonic coelom, Amniotic cavity, Yolk sac, B
+The intraembryonic coelom is shaped like an inverted, U, V, W, Horseshoe, D
+The intraembryonic coelom gives rise to the pericardial pleural and cavities, Cranial, Spinal, Peritoneal, Orbital, C
+The intraembryonic coelom divides the lateral plate mesoderm into, Two layers, Three layers, Four layers, Five layers, A
+The somatic or parietal layer is called the, Splanchnopleure, Somatopleure, Myotome, Sclerotome, B
+The somatopleure forms the dermis of the trunk and the, Appendicular skeleton, Internal organs, Heart, Brain, A
+The splanchnic or visceral layer is called the, Somatopleure, Splanchnopleure, Myotome, Dermatome, B
+The splanchnopleure forms connective tissue and muscles of the, Limbs, Gastrointestinal tract, Skin, Skeleton, B
+The extraembryonic mesoderm arises from the, Epiblast, Hypoblast, Trophoblast, Embryoblast, B
+The extraembryonic mesoderm surrounds the amnion and yolk sac and separates them from the, Embryo, Trophoblast, Decidua, Uterus, B
+The somatic layer of extraembryonic mesoderm covers the, Yolk sac, Amniotic cavity, Embryo, Trophoblast, B
+The visceral layer of extraembryonic mesoderm covers the, Amniotic cavity, Yolk sac, Trophoblast, Embryo, B
+The paraxial mesoderm forms the, Heart, Somites, Kidneys, Lungs, B
+Each somite differentiates into a sclerotome myotome and, Dermatome, Nephrotome, Coelom, Notochord, A
+The sclerotome forms, Cartilage and bone, Muscle, Dermis, Kidney, A
+The myotome forms, Bone, Muscle, Skin, Nerve, B
+The dermatome forms, Bone, Muscle, Dermis, Kidney, C
+The nephrogenic cord forms the, Limbs, Kidneys and gonads, Heart, Brain, B
+The lateral plate mesoderm forms the, Body wall and limb bones, Neural tube, Notochord, Sense organs, A
+The heart develops from the, Neuroectoderm, Cardiogenic area, Nephrogenic cord, Somite, B
+The diaphragm develops from the, Septum transversum, Somites, Neural crest, Endoderm, A
+The gastrointestinal tract connective tissue comes from the, Ectoderm, Splanchnopleure, Somatopleure, Neural crest, B
+The blood vessels develop from the, Endoderm, Mesoderm, Ectoderm, Trophoblast, B
+The spleen develops from the, Ectoderm, Mesoderm, Endoderm, Neural crest, B
+The lymphatic system develops from the, Endoderm, Mesoderm, Ectoderm, Trophoblast, B
+The adrenal cortex develops from the, Ectoderm, Mesoderm, Endoderm, Neural crest, B
+The kidneys develop from the, Paraxial mesoderm, Intermediate mesoderm, Lateral plate, Surface ectoderm, B
+The ureters develop from the, Ectoderm, Intermediate mesoderm, Endoderm, Neural crest, B
+The gonads develop from the, Paraxial mesoderm, Intermediate mesoderm, Lateral plate, Ectoderm, B
+The reproductive ducts develop from the, Ectoderm, Mesonephric and paramesonephric ducts, Endoderm, Neural crest, B
+The bones of the limbs develop from the, Somatopleure, Splanchnopleure, Neural crest, Endoderm, A
+The muscles of the limbs develop from the, Somites, Lateral plate mesoderm, Neural crest, Endoderm, B
+The dermis of the limbs develops from the, Somatopleure, Splanchnopleure, Neural crest, Endoderm, A
+The serous membranes develop from the, Ectoderm, Mesoderm, Endoderm, Trophoblast, B
+The pericardium develops from the, Ectoderm, Splanchnopleure, Somatopleure, Neural crest, B
+The pleura develops from the, Endoderm, Splanchnopleure, Somatopleure, Neural crest, B
+The peritoneum develops from the, Ectoderm, Splanchnopleure, Somatopleure, Neural crest, B
+The mesoderm gives rise to all except, Muscles, Bones, Nervous system, Circulatory system, C
+The notochord is derived from the, Ectoderm, Mesoderm, Endoderm, Trophoblast, B
+The notochord induces the formation of the, Heart, Neural tube, Liver, Kidneys, B
+The mesoderm is important for providing structure and to the embryo, Nutrition, Support and movement, Sensation, Digestion, B
+The formation of the mesoderm occurs during, Fertilization, Gastrulation, Implantation, Cleavage, B
+The intraembryonic mesoderm is formed by cells migrating through the, Neural tube, Primitive streak, Notochord, Amnion, B
+The fate of the mesoderm is determined by, Genetic factors, Position and signals, Random chance, Maternal diet, B
+Somites are a key feature of, Vertebrate embryos, Invertebrates, Plants, Fungi, A
+The number of somites is used to determine the, Sex, Age of the embryo, Genetic defects, Blood type, B
+The lateral plate mesoderm splits into two layers by the, Neural tube, Intraembryonic coelom, Notochord, Amniotic cavity, B
+The somatic layer associates with the, Endoderm, Ectoderm, Trophoblast, Neural crest, B
+The splanchnic layer associates with the, Ectoderm, Endoderm, Trophoblast, Neural crest, B
+The mesoderm forms the bulk of the, Nervous system, Body's connective tissues, Digestive lining, Epidermis, B

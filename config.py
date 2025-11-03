@@ -22,10 +22,10 @@ NAVIGATION_STRUCTURE = {
         "display_name": "Year 1",
         "terms": {
             "term_1": {
-                "display_name": "Term 1", 
+                "display_name": "Semester 1", 
                 "blocks": {
                     "block_1": {
-                        "display_name": "Block 1",
+                        "display_name": "Block 1 (PMS)",
                         "subjects": {
                             "anatomy": {
                                 "display_name": "📊 Anatomy",
