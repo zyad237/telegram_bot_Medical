@@ -67,7 +67,7 @@ NAVIGATION_STRUCTURE = {
                                             "32_Twins.csv": "32. Twins"
                                         }
                                     },
-                                    "Midterm": {
+                                    "midterm": {
                                         "display_name": "📝 Midterm Exams",
                                         "subtopics": {
                                             "01_Midterm Questions.csv": "Midterm 1",
@@ -75,7 +75,7 @@ NAVIGATION_STRUCTURE = {
                                             "03_Midterm Questions.csv": "Midterm 3"
                                         }
                                     },
-                                    "Final": {
+                                    "final": {
                                         "display_name": "🎯 Final Exams", 
                                         "subtopics": {
                                             "01_Final Questions.csv": "Final 1",
@@ -83,7 +83,7 @@ NAVIGATION_STRUCTURE = {
                                             "03_Final Questions.csv": "Final 3"
                                         }
                                     },
-                                    "Formative": {
+                                    "formative": {
                                         "display_name": "📚 Formative Assessments",
                                         "subtopics": {
                                             "01_Formative.csv": "Formative 1",
@@ -115,7 +115,7 @@ NAVIGATION_STRUCTURE = {
                                             "12_Bone.csv": "12. Bone"
                                         }
                                     },
-                                    "Midterm": {
+                                    "midterm": {
                                         "display_name": "📝 Midterm Exams",
                                         "subtopics": {
                                             "01_Midterm Questions.csv": "Midterm 1",
@@ -123,7 +123,7 @@ NAVIGATION_STRUCTURE = {
                                             "03_Midterm Questions.csv": "Midterm 3"
                                         }
                                     },
-                                    "Final": {
+                                    "final": {
                                         "display_name": "🎯 Final Exams",
                                         "subtopics": {
                                             "01_Final Questions.csv": "Final 1",
@@ -131,7 +131,7 @@ NAVIGATION_STRUCTURE = {
                                             "03_Final Questions.csv": "Final 3"
                                         }
                                     },
-                                    "Formative": {
+                                    "formative": {
                                         "display_name": "📚 Formative Assessments",
                                         "subtopics": {
                                             "01_Formative.csv": "Formative 1",
