@@ -264,7 +264,18 @@ class BotHandlers:
             term_display = FileManager.get_term_display_name(year, term)
             block_display = FileManager.get_block_display_name(year, term, block)
             subject_display = FileManager.get_subject_display_name(year, term, block, subject)
-            await query.edit_message_text(f"❌ No categories available for {year_display} - {term_display} - {block_display} - {subject_display}")
+            
+            # Enhanced error message with debugging info
+            error_msg = (
+                f"❌ No categories available for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display}\n\n"
+                f"💡 This usually means:\n"
+                f"• The category directories don't exist\n"
+                f"• Directory names don't match config\n"
+                f"• Check console for debugging output"
+            )
+            await query.edit_message_text(error_msg)
             return
         
         keyboard = []
@@ -300,7 +311,18 @@ class BotHandlers:
             block_display = FileManager.get_block_display_name(year, term, block)
             subject_display = FileManager.get_subject_display_name(year, term, block, subject)
             category_display = FileManager.get_category_display_name(year, term, block, subject, category)
-            await query.edit_message_text(f"❌ No quizzes available for {year_display} - {term_display} - {block_display} - {subject_display} - {category_display}")
+            
+            # Enhanced error message
+            error_msg = (
+                f"❌ No quizzes available for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display} - {category_display}\n\n"
+                f"💡 This usually means:\n"
+                f"• No CSV files in the category directory\n"
+                f"• CSV file names don't match config\n"
+                f"• Check console for debugging output"
+            )
+            await query.edit_message_text(error_msg)
             return
         
         keyboard = []

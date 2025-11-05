@@ -138,14 +138,32 @@ class FileManager:
             return []
         
         subject_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
+        
+        # DEBUGGING: Print what we're looking for
+        print(f"🔍 FileManager.list_categories() called for: {year}/{term}/{block}/{subject}")
+        print(f"   📁 Looking in: {subject_path}")
+        
         if not os.path.exists(subject_path):
+            print(f"   ❌ Subject path doesn't exist: {subject_path}")
             return []
         
-        categories = [c for c in os.listdir(subject_path)
-                     if os.path.isdir(os.path.join(subject_path, c))
-                     and not c.startswith('.')
-                     and "categories" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]
-                     and c in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]]
+        # Get actual directories
+        actual_dirs = [d for d in os.listdir(subject_path) 
+                      if os.path.isdir(os.path.join(subject_path, d)) and not d.startswith('.')]
+        
+        print(f"   📂 Actual directories found: {actual_dirs}")
+        
+        # Get expected categories from config
+        expected_categories = list(NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].keys())
+        print(f"   📋 Expected categories from config: {expected_categories}")
+        
+        # Only return directories that exist AND are in config
+        categories = [c for c in actual_dirs
+                     if c in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]]
+        
+        print(f"   ✅ Final categories returned: {categories}")
+        print()
+        
         return sorted(categories)
     
     @staticmethod
@@ -181,22 +199,39 @@ class FileManager:
             return []
         
         category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
+        
+        # DEBUGGING
+        print(f"🔍 FileManager.list_subtopics() called for: {year}/{term}/{block}/{subject}/{category}")
+        print(f"   📁 Looking in: {category_path}")
+        
         if not os.path.exists(category_path):
+            print(f"   ❌ Category path doesn't exist: {category_path}")
             return []
         
+        # Get all CSV files
+        all_csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv') and not f.startswith('.')]
+        print(f"   📄 All CSV files found: {all_csv_files}")
+        
+        # Get expected subtopics from config
+        expected_subtopics = list(structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
+        print(f"   📋 Expected subtopics from config: {expected_subtopics}")
+        
+        # Only return files that exist AND are in config
         subtopics = []
-        for file in os.listdir(category_path):
-            if file.endswith('.csv') and not file.startswith('.'):
-                # Use the actual numbered filename as the subtopic key
-                if ("subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
-                    file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
-                    subtopics.append(file)  # Store the full numbered filename
+        for file in all_csv_files:
+            if file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]:
+                subtopics.append(file)
         
         # Sort by the numeric prefix to maintain order
-        return sorted(subtopics, key=lambda x: (
+        sorted_subtopics = sorted(subtopics, key=lambda x: (
             int(x.split('_')[0]) if x.split('_')[0].isdigit() else float('inf'), 
             x
         ))
+        
+        print(f"   ✅ Final subtopics returned: {sorted_subtopics}")
+        print()
+        
+        return sorted_subtopics
     
     @staticmethod
     def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
