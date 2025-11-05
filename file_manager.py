@@ -1,314 +1,357 @@
 """
-File management for 6-level navigation structure
+Bot command and callback handlers for 6-level navigation
 """
-import os
-import csv
 import logging
-from typing import List, Dict
-from functools import lru_cache
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, CallbackQueryHandler, CommandHandler, PollAnswerHandler
+from telegram.error import BadRequest
 
-from config import CONFIG, NAVIGATION_STRUCTURE
-from utils import sanitize_text
+from file_manager import FileManager
+from callback_manager import CallbackManager
+from quiz_manager import QuizManager
+from database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
-class FileManager:
-    @staticmethod
-    @lru_cache(maxsize=32)
-    def list_years() -> List[str]:
-        """Get list of available years from data directory"""
-        data_dir = CONFIG["data_dir"]
-        if not os.path.exists(data_dir):
-            return []
-        
-        years = [d for d in os.listdir(data_dir) 
-                if os.path.isdir(os.path.join(data_dir, d)) 
-                and not d.startswith('.')
-                and d in NAVIGATION_STRUCTURE]
-        return sorted(years)
+class BotHandlers:
+    def __init__(self, database: DatabaseManager, quiz_manager: QuizManager):
+        self.db = database
+        self.quiz_manager = quiz_manager
     
-    @staticmethod
-    def get_year_display_name(year: str) -> str:
-        """Get display name for year"""
-        return NAVIGATION_STRUCTURE.get(year, {}).get("display_name", year.replace('_', ' ').title())
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /start command - show years"""
+        user = update.effective_user
+        self.db.update_user(user.id, user.username, user.first_name, user.last_name)
+        
+        context.user_data.clear()
+        years = FileManager.list_years()
+        
+        if not years:
+            await update.message.reply_text("📝 No academic years available.")
+            return
+        
+        keyboard = []
+        for year in years:
+            callback_data = CallbackManager.create_year_callback(year)
+            display_name = FileManager.get_year_display_name(year)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        await update.message.reply_text(
+            "🎓 Medical Quiz Bot\n\nSelect your academic year:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
     
-    @staticmethod
-    @lru_cache(maxsize=64)
-    def list_terms(year: str) -> List[str]:
-        """Get list of available terms for a year"""
-        if year not in NAVIGATION_STRUCTURE or "terms" not in NAVIGATION_STRUCTURE[year]:
-            return []
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /help command"""
+        help_text = (
+            "🤖 Medical Quiz Bot Help\n\n"
+            "📚 Available Commands:\n"
+            "• /start - Start the bot and select quiz\n"
+            "• /stats - View your quiz statistics\n"
+            "• /cancel - Cancel current quiz\n"
+            "• /help - Show this help message\n\n"
+            "🎯 How to Use:\n"
+            "1. Use /start to begin\n"
+            "2. Navigate: Year → Term → Block → Subject → Category → Quiz\n"
+            "3. Answer questions at your own pace\n"
+            "4. View your results at the end\n\n"
+            "📖 Navigation:\n"
+            "• Years: Academic years (Year 1, Year 2, etc.)\n"
+            "• Terms: Semester terms\n"
+            "• Blocks: Curriculum blocks\n"
+            "• Subjects: Anatomy, Histology, etc.\n"
+            "• Categories: General, Midterm, Final, Formative\n"
+            "• Quizzes: Individual topic quizzes"
+        )
         
-        year_path = os.path.join(CONFIG["data_dir"], year)
-        if not os.path.exists(year_path):
-            return []
-        
-        terms = [t for t in os.listdir(year_path) 
-                if os.path.isdir(os.path.join(year_path, t))
-                and not t.startswith('.')
-                and t in NAVIGATION_STRUCTURE[year]["terms"]]
-        return sorted(terms)
+        await update.message.reply_text(help_text)
     
-    @staticmethod
-    def get_term_display_name(year: str, term: str) -> str:
-        """Get display name for term"""
-        if (year in NAVIGATION_STRUCTURE and 
-            "terms" in NAVIGATION_STRUCTURE[year] and
-            term in NAVIGATION_STRUCTURE[year]["terms"]):
-            return NAVIGATION_STRUCTURE[year]["terms"][term]["display_name"]
-        return term.replace('_', ' ').title()
+    async def stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /stats command"""
+        user = update.effective_user
+        stats = self.db.get_user_stats(user.id)
+        
+        if stats['total_quizzes'] == 0:
+            await update.message.reply_text("📊 You haven't completed any quizzes yet!\nUse /start to begin your first quiz.")
+            return
+        
+        stats_text = (
+            f"📊 Your Quiz Statistics\n\n"
+            f"• Total Quizzes Completed: {stats['total_quizzes']}\n"
+            f"• Average Score: {stats['average_score']}%\n\n"
+            f"Keep up the great work! 🎯"
+        )
+        
+        await update.message.reply_text(stats_text)
     
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def list_blocks(year: str, term: str) -> List[str]:
-        """Get list of available blocks for a term"""
-        if (year not in NAVIGATION_STRUCTURE or 
-            "terms" not in NAVIGATION_STRUCTURE[year] or
-            term not in NAVIGATION_STRUCTURE[year]["terms"]):
-            return []
+    async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /cancel command"""
+        user_data = context.user_data
         
-        term_path = os.path.join(CONFIG["data_dir"], year, term)
-        if not os.path.exists(term_path):
-            return []
-        
-        blocks = [b for b in os.listdir(term_path)
-                 if os.path.isdir(os.path.join(term_path, b))
-                 and not b.startswith('.')
-                 and "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term]
-                 and b in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]]
-        return sorted(blocks)
-    
-    @staticmethod
-    def get_block_display_name(year: str, term: str, block: str) -> str:
-        """Get display name for block"""
-        if (year in NAVIGATION_STRUCTURE and 
-            "terms" in NAVIGATION_STRUCTURE[year] and
-            term in NAVIGATION_STRUCTURE[year]["terms"] and
-            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
-            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
-            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["display_name"]
-        return block.replace('_', ' ').title()
-    
-    @staticmethod
-    @lru_cache(maxsize=256)
-    def list_subjects(year: str, term: str, block: str) -> List[str]:
-        """Get list of available subjects for a block"""
-        if (year not in NAVIGATION_STRUCTURE or 
-            "terms" not in NAVIGATION_STRUCTURE[year] or
-            term not in NAVIGATION_STRUCTURE[year]["terms"] or
-            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
-            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
-            return []
-        
-        block_path = os.path.join(CONFIG["data_dir"], year, term, block)
-        if not os.path.exists(block_path):
-            return []
-        
-        subjects = [s for s in os.listdir(block_path)
-                   if os.path.isdir(os.path.join(block_path, s))
-                   and not s.startswith('.')
-                   and "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]
-                   and s in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]]
-        return sorted(subjects)
-    
-    @staticmethod
-    def get_subject_display_name(year: str, term: str, block: str, subject: str) -> str:
-        """Get display name for subject"""
-        if (year in NAVIGATION_STRUCTURE and 
-            "terms" in NAVIGATION_STRUCTURE[year] and
-            term in NAVIGATION_STRUCTURE[year]["terms"] and
-            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
-            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] and
-            "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] and
-            subject in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
-            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["display_name"]
-        return subject.title()
-    
-    @staticmethod
-    @lru_cache(maxsize=512)
-    def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
-        """Get list of available categories for a subject - SIMPLIFIED VERSION"""
-        if (year not in NAVIGATION_STRUCTURE or 
-            "terms" not in NAVIGATION_STRUCTURE[year] or
-            term not in NAVIGATION_STRUCTURE[year]["terms"] or
-            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
-            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] or
-            "subjects" not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] or
-            subject not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
-            return []
-        
-        subject_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
-        
-        if not os.path.exists(subject_path):
-            return []
-        
-        # Get ALL directories in subject path
-        all_dirs = [d for d in os.listdir(subject_path) 
-                   if os.path.isdir(os.path.join(subject_path, d)) and not d.startswith('.')]
-        
-        # Return directories that match config (case-insensitive)
-        expected_categories = NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].keys()
-        
-        # Case-insensitive matching
-        categories = []
-        for dir_name in all_dirs:
-            for expected_category in expected_categories:
-                if dir_name.lower() == expected_category.lower():
-                    categories.append(dir_name)
-                    break
-        
-        return sorted(categories)
-    
-    @staticmethod
-    def get_category_display_name(year: str, term: str, block: str, subject: str, category: str) -> str:
-        """Get display name for category"""
-        structure = NAVIGATION_STRUCTURE
-        if (year in structure and 
-            "terms" in structure[year] and
-            term in structure[year]["terms"] and
-            "blocks" in structure[year]["terms"][term] and
-            block in structure[year]["terms"][term]["blocks"] and
-            "subjects" in structure[year]["terms"][term]["blocks"][block] and
-            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
+        if user_data.get("quiz_active"):
+            try:
+                if user_data.get("active_poll_id"):
+                    await context.bot.stop_poll(
+                        chat_id=user_data["chat_id"],
+                        message_id=user_data.get("poll_message_id")
+                    )
+            except Exception as e:
+                logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
             
-            # Case-insensitive lookup
-            for config_category, config_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
-                if config_category.lower() == category.lower():
-                    return config_data["display_name"]
+            user_data.clear()
+            await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
+        else:
+            await update.message.reply_text("ℹ️ No active quiz to cancel.")
+
+    async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle all callback queries"""
+        query = update.callback_query
         
-        return category.title()
-    
-    @staticmethod
-    @lru_cache(maxsize=1024)
-    def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
-        """Get list of available subtopics for a category - SIMPLIFIED VERSION"""
-        structure = NAVIGATION_STRUCTURE
-        if (year not in structure or 
-            "terms" not in structure[year] or
-            term not in structure[year]["terms"] or
-            "blocks" not in structure[year]["terms"][term] or
-            block not in structure[year]["terms"][term]["blocks"] or
-            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
-            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
-            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
-            return []
-        
-        category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
-        
-        if not os.path.exists(category_path):
-            return []
-        
-        # Get ALL CSV files in category path
-        all_csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv') and not f.startswith('.')]
-        
-        # Get expected files from config (case-insensitive matching)
-        expected_files = []
-        for config_category, config_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
-            if config_category.lower() == category.lower():
-                expected_files = list(config_data["subtopics"].keys())
-                break
-        
-        # Return files that match expected files (case-insensitive)
-        matching_files = []
-        for csv_file in all_csv_files:
-            for expected_file in expected_files:
-                if csv_file.lower() == expected_file.lower():
-                    matching_files.append(csv_file)
-                    break
-        
-        # Sort by numeric prefix
-        return sorted(matching_files, key=lambda x: (
-            int(x.split('_')[0]) if x.split('_')[0].isdigit() else float('inf'), 
-            x
-        ))
-    
-    @staticmethod
-    def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
-        """Get display name for subtopic"""
-        structure = NAVIGATION_STRUCTURE
-        if (year in structure and 
-            "terms" in structure[year] and
-            term in structure[year]["terms"] and
-            "blocks" in structure[year]["terms"][term] and
-            block in structure[year]["terms"][term]["blocks"] and
-            "subjects" in structure[year]["terms"][term]["blocks"][block] and
-            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
-            
-            # Case-insensitive lookup
-            for config_category, category_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
-                if config_category.lower() == category.lower():
-                    for config_subtopic, display_name in category_data["subtopics"].items():
-                        if config_subtopic.lower() == subtopic.lower():
-                            return display_name
-        
-        # Fallback
-        display_name = subtopic[:-4] if subtopic.endswith('.csv') else subtopic
-        if '_' in display_name:
-            display_name = display_name.split('_', 1)[1]
-        return display_name.replace('_', ' ').title()
-    
-    @staticmethod
-    def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file"""
-        # Construct file path
-        file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
-        
-        logger.info(f"📁 Loading questions from: {file_path}")
-        
-        if not os.path.exists(file_path):
-            logger.error(f"❌ Question file not found: {file_path}")
-            return []
-        
-        questions = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                row_count = 0
-                valid_questions = 0
-                
-                for i, row in enumerate(reader, 1):
-                    row_count += 1
-                    
-                    # Skip empty rows, comments, and rows with insufficient data
-                    if not row or not any(row) or row[0].startswith('#') or len(row) < 6:
-                        continue
-                    
-                    # Clean and validate data
-                    cleaned_row = [x.strip() for x in row[:6] if x.strip()]
-                    if len(cleaned_row) < 6:
-                        continue
-                    
-                    question, opt_a, opt_b, opt_c, opt_d, correct = cleaned_row
-                    correct = correct.upper()
-                    
-                    # Validate correct answer format
-                    if correct not in ['A', 'B', 'C', 'D']:
-                        logger.warning(f"⚠️ Invalid correct answer in row {i}: '{correct}'")
-                        continue
-                    
-                    # Sanitize all text
-                    question = sanitize_text(question)
-                    opt_a = sanitize_text(opt_a)
-                    opt_b = sanitize_text(opt_b)
-                    opt_c = sanitize_text(opt_c)
-                    opt_d = sanitize_text(opt_d)
-                    
-                    questions.append({
-                        "question": question,
-                        "options": [opt_a, opt_b, opt_c, opt_d],
-                        "correct": correct,
-                        "correct_index": ord(correct) - ord('A')
-                    })
-                    valid_questions += 1
-            
-            logger.info(f"✅ Loaded {valid_questions} valid questions from {row_count} rows")
-            
-            if valid_questions == 0:
-                logger.warning(f"⚠️ No valid questions found in {file_path}")
-                
-        except Exception as e:
-            logger.error(f"❌ Error loading questions from {file_path}: {e}")
+            await query.answer()
+        except BadRequest:
+            pass
         
-        return questions
+        callback_data = query.data
+        
+        try:
+            parsed = CallbackManager.parse_callback_data(callback_data)
+            if not parsed:
+                await query.edit_message_text("❌ Invalid selection.")
+                return
+            
+            if parsed["type"] == "main_menu":
+                await self.handle_main_menu(update, context)
+            elif parsed["type"] == "year":
+                await self.handle_year_selection(update, context, parsed["year"])
+            elif parsed["type"] == "term":
+                await self.handle_term_selection(update, context, parsed["year"], parsed["term"])
+            elif parsed["type"] == "block":
+                await self.handle_block_selection(update, context, parsed["year"], parsed["term"], parsed["block"])
+            elif parsed["type"] == "subject":
+                await self.handle_subject_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"])
+            elif parsed["type"] == "category":
+                await self.handle_category_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"], parsed["category"])
+            elif parsed["type"] == "subtopic":
+                await self.handle_subtopic_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"], parsed["category"], parsed["subtopic"])
+                    
+        except Exception as e:
+            logger.error(f"❌ Error handling callback: {e}")
+            await query.edit_message_text("❌ An error occurred.")
+
+    async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle return to main menu - show years"""
+        query = update.callback_query
+        years = FileManager.list_years()
+        
+        if not years:
+            await query.edit_message_text("❌ No academic years available.")
+            return
+        
+        keyboard = []
+        for year in years:
+            callback_data = CallbackManager.create_year_callback(year)
+            display_name = FileManager.get_year_display_name(year)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        try:
+            await query.edit_message_text(
+                "🎓 Select your academic year:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_year_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str):
+        """Handle year selection - show terms"""
+        query = update.callback_query
+        
+        terms = FileManager.list_terms(year)
+        
+        if not terms:
+            await query.edit_message_text(f"❌ No terms available for {FileManager.get_year_display_name(year)}")
+            return
+        
+        keyboard = []
+        for term in terms:
+            callback_data = CallbackManager.create_term_callback(year, term)
+            display_name = FileManager.get_term_display_name(year, term)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Years", callback_data="main_menu")])
+        
+        try:
+            year_display = FileManager.get_year_display_name(year)
+            await query.edit_message_text(
+                f"{year_display}\nSelect term:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_term_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str):
+        """Handle term selection - show blocks"""
+        query = update.callback_query
+        
+        blocks = FileManager.list_blocks(year, term)
+        
+        if not blocks:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            await query.edit_message_text(f"❌ No blocks available for {year_display} - {term_display}")
+            return
+        
+        keyboard = []
+        for block in blocks:
+            callback_data = CallbackManager.create_block_callback(year, term, block)
+            display_name = FileManager.get_block_display_name(year, term, block)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Terms", 
+                        callback_data=CallbackManager.create_year_callback(year))])
+        
+        try:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            await query.edit_message_text(
+                f"{year_display} - {term_display}\nSelect block:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_block_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str):
+        """Handle block selection - show subjects"""
+        query = update.callback_query
+        
+        subjects = FileManager.list_subjects(year, term, block)
+        
+        if not subjects:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            await query.edit_message_text(f"❌ No subjects available for {year_display} - {term_display} - {block_display}")
+            return
+        
+        keyboard = []
+        for subject in subjects:
+            callback_data = CallbackManager.create_subject_callback(year, term, block, subject)
+            display_name = FileManager.get_subject_display_name(year, term, block, subject)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Blocks", 
+                        callback_data=CallbackManager.create_term_callback(year, term))])
+        
+        try:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            await query.edit_message_text(
+                f"{year_display} - {term_display} - {block_display}\nSelect subject:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_subject_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str):
+        """Handle subject selection - show categories"""
+        query = update.callback_query
+        
+        categories = FileManager.list_categories(year, term, block, subject)
+        
+        if not categories:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            
+            error_msg = (
+                f"❌ No categories available for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display}\n\n"
+                f"💡 Check if category directories exist in the data folder."
+            )
+            await query.edit_message_text(error_msg)
+            return
+        
+        keyboard = []
+        for category in categories:
+            callback_data = CallbackManager.create_category_callback(year, term, block, subject, category)
+            display_name = FileManager.get_category_display_name(year, term, block, subject, category)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Subjects", 
+                        callback_data=CallbackManager.create_block_callback(year, term, block))])
+        
+        try:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            await query.edit_message_text(
+                f"{year_display} - {term_display} - {block_display} - {subject_display}\nSelect category:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_category_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str, category: str):
+        """Handle category selection - show subtopics"""
+        query = update.callback_query
+        
+        subtopics = FileManager.list_subtopics(year, term, block, subject, category)
+        
+        if not subtopics:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+            
+            error_msg = (
+                f"❌ No quizzes available for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display} - {category_display}\n\n"
+                f"💡 Check if CSV files exist in the category directory."
+            )
+            await query.edit_message_text(error_msg)
+            return
+        
+        keyboard = []
+        for subtopic in subtopics:
+            callback_data = CallbackManager.create_subtopic_callback(year, term, block, subject, category, subtopic)
+            display_name = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
+            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Categories", 
+                        callback_data=CallbackManager.create_subject_callback(year, term, block, subject))])
+        
+        try:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+            await query.edit_message_text(
+                f"{year_display} - {term_display} - {block_display} - {subject_display} - {category_display}\nSelect quiz:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        except BadRequest:
+            pass
+    
+    async def handle_subtopic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str, category: str, subtopic: str):
+        """Handle subtopic selection and start quiz"""
+        await self.quiz_manager.start_quiz(update, context, year, term, block, subject, category, subtopic)
+    
+    async def handle_poll_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle poll answers"""
+        await self.quiz_manager.handle_poll_answer(update, context)
+    
+    def register_handlers(self, application):
+        """Register all handlers with the application"""
+        application.add_handler(CommandHandler("start", self.start))
+        application.add_handler(CommandHandler("help", self.help_command))
+        application.add_handler(CommandHandler("stats", self.stats_command))
+        application.add_handler(CommandHandler("cancel", self.cancel_command))
+        application.add_handler(CallbackQueryHandler(self.handle_callback))
+        application.add_handler(PollAnswerHandler(self.handle_poll_answer))
