@@ -3,7 +3,8 @@ File system navigation for 6-level curriculum structure
 """
 import os
 import logging
-from typing import List, Optional
+import csv
+from typing import List, Optional, Dict, Any
 from config import NAVIGATION_STRUCTURE
 
 logger = logging.getLogger(__name__)
@@ -136,3 +137,54 @@ class FileManager:
         else:
             logger.warning(f"File not found: {file_path}")
             return None
+
+    @staticmethod
+    def load_questions(file_path: str) -> List[Dict[str, Any]]:
+        """
+        Load questions from CSV file
+        
+        Expected CSV format:
+        question,option1,option2,option3,option4,correct_answer,explanation
+        """
+        questions = []
+        
+        if not os.path.exists(file_path):
+            logger.error(f"❌ CSV file not found: {file_path}")
+            return questions
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                csv_reader = csv.DictReader(file)
+                
+                for row_num, row in enumerate(csv_reader, 1):
+                    # Validate required fields
+                    if not row.get('question') or not row.get('correct_answer'):
+                        logger.warning(f"⚠️ Skipping row {row_num}: missing question or correct_answer")
+                        continue
+                    
+                    # Build options list
+                    options = []
+                    for i in range(1, 5):
+                        option_key = f'option{i}'
+                        if option_key in row and row[option_key]:
+                            options.append(row[option_key])
+                    
+                    if len(options) < 2:
+                        logger.warning(f"⚠️ Skipping row {row_num}: insufficient options")
+                        continue
+                    
+                    question_data = {
+                        'question': row['question'],
+                        'options': options,
+                        'correct_answer': row['correct_answer'],
+                        'explanation': row.get('explanation', 'No explanation provided.')
+                    }
+                    
+                    questions.append(question_data)
+                
+                logger.info(f"✅ Loaded {len(questions)} questions from {file_path}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error loading questions from {file_path}: {e}")
+        
+        return questions
