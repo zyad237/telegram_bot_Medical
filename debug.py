@@ -1,97 +1,80 @@
-# [file name]: debug_files.py
+# [file name]: debug_midterm.py
 """
-Enhanced debug script to test file loading
+Debug script to check why midterm files aren't being found
 """
 import os
-import logging
+from config import CONFIG, NAVIGATION_STRUCTURE
 from file_manager import FileManager
 
-# Setup logging to see all messages
-logging.basicConfig(level=logging.INFO)
+def debug_midterm_files():
+    print("🔍 Debugging Midterm File Access")
+    print("=" * 50)
+    
+    # Test specific path that's failing
+    year = "year_1"
+    term = "term_1"
+    block = "block_1"
+    subject = "anatomy"
+    category = "midterm"
+    
+    print(f"Testing path: {year}/{term}/{block}/{subject}/{category}")
+    
+    # Check if directory exists
+    expected_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
+    print(f"Expected path: {expected_path}")
+    print(f"Directory exists: {os.path.exists(expected_path)}")
+    
+    if os.path.exists(expected_path):
+        print("\n📁 Contents of directory:")
+        files = os.listdir(expected_path)
+        for file in files:
+            file_type = "📄 CSV" if file.endswith('.csv') else "📁 Dir"
+            print(f"  {file_type}: {file}")
+    
+    # Test FileManager methods
+    print(f"\n🧪 Testing FileManager methods:")
+    print(f"List years: {FileManager.list_years()}")
+    print(f"List terms: {FileManager.list_terms(year)}")
+    print(f"List blocks: {FileManager.list_blocks(year, term)}")
+    print(f"List subjects: {FileManager.list_subjects(year, term, block)}")
+    print(f"List categories: {FileManager.list_categories(year, term, block, subject)}")
+    print(f"List subtopics: {FileManager.list_subtopics(year, term, block, subject, category)}")
+    
+    # Check navigation structure
+    print(f"\n📋 Navigation structure check:")
+    path = FileManager.get_navigation_path(year, term, block, subject, category)
+    if path and "subtopics" in path:
+        print(f"Subtopics in navigation: {list(path['subtopics'].keys())}")
+    else:
+        print("❌ No subtopics found in navigation structure")
+    
+    # Test loading a specific file
+    print(f"\n🧪 Testing file loading:")
+    subtopics = FileManager.list_subtopics(year, term, block, subject, category)
+    if subtopics:
+        test_file = subtopics[0]
+        print(f"Testing file: {test_file}")
+        questions = FileManager.load_questions(year, term, block, subject, category, test_file)
+        print(f"Questions loaded: {len(questions)}")
+    else:
+        print("❌ No subtopics to test")
 
-def test_file_loading():
-    """Test loading specific files"""
-    print("🧪 Testing file loading...")
+def check_all_csv_locations():
+    """Check all possible locations where CSV files might be"""
+    print(f"\n🔎 Searching for CSV files in entire data directory...")
     
-    # Test cases - adjust these based on your actual files
-    test_cases = [
-        {
-            'year': 'year_1',
-            'term': 'term_1', 
-            'block': 'block_1',
-            'subject': 'anatomy',
-            'category': 'general',
-            'subtopic': '01_Introduction to Anatomy.csv'
-        },
-        {
-            'year': 'year_1',
-            'term': 'term_1',
-            'block': 'block_1', 
-            'subject': 'anatomy',
-            'category': 'midterm',
-            'subtopic': '01_Midterm Questions.csv'
-        },
-        {
-            'year': 'year_1',
-            'term': 'term_1',
-            'block': 'block_1',
-            'subject': 'histology', 
-            'category': 'general',
-            'subtopic': '01_Paraffin technique.csv'
-        }
-    ]
+    csv_files = []
+    for root, dirs, files in os.walk(CONFIG["data_dir"]):
+        for file in files:
+            if file.endswith('.csv'):
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, CONFIG["data_dir"])
+                csv_files.append((rel_path, file))
     
-    for i, test_case in enumerate(test_cases, 1):
-        print(f"\n🔍 Test {i}: {test_case['subtopic']}")
-        questions = FileManager.load_questions(
-            test_case['year'],
-            test_case['term'], 
-            test_case['block'],
-            test_case['subject'],
-            test_case['category'],
-            test_case['subtopic']
-        )
-        
-        if questions:
-            print(f"✅ SUCCESS: Loaded {len(questions)} questions")
-            # Show first question as sample
-            if questions:
-                first_q = questions[0]
-                print(f"   Sample: {first_q['question'][:50]}...")
-                print(f"   Options: {[opt[:20] + '...' for opt in first_q['options']]}")
-                print(f"   Correct: {first_q['correct_index']}")
-        else:
-            print(f"❌ FAILED: No questions loaded")
-
-def list_all_navigation():
-    """List all available navigation paths"""
-    print("\n🗺️ Navigation Structure:")
-    
-    years = FileManager.list_years()
-    print(f"Years: {years}")
-    
-    for year in years:
-        terms = FileManager.list_terms(year)
-        print(f"  {year}: {terms}")
-        
-        for term in terms:
-            blocks = FileManager.list_blocks(year, term)
-            print(f"    {term}: {blocks}")
-            
-            for block in blocks:
-                subjects = FileManager.list_subjects(year, term, block)
-                print(f"      {block}: {subjects}")
-                
-                for subject in subjects:
-                    categories = FileManager.list_categories(year, term, block, subject)
-                    print(f"        {subject}: {categories}")
-                    
-                    for category in categories:
-                        subtopics = FileManager.list_subtopics(year, term, block, subject, category)
-                        print(f"          {category}: {len(subtopics)} subtopics")
-                        for subtopic in subtopics[:3]:  # Show first 3
-                            print(f"            - {subtopic}")
+    print(f"Found {len(csv_files)} CSV files:")
+    for path, file in csv_files:
+        print(f"  📄 {path}")
 
 if __name__ == "__main__":
-    test_file_loading()
-    list_all_navigation()
+    debug_midterm_files()
+    check_all_csv_locations()
