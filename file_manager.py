@@ -127,7 +127,7 @@ class FileManager:
     @staticmethod
     @lru_cache(maxsize=512)
     def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
-        """Get list of available categories for a subject"""
+        """Get list of available categories for a subject - SIMPLIFIED VERSION"""
         if (year not in NAVIGATION_STRUCTURE or 
             "terms" not in NAVIGATION_STRUCTURE[year] or
             term not in NAVIGATION_STRUCTURE[year]["terms"] or
@@ -139,30 +139,23 @@ class FileManager:
         
         subject_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
         
-        # DEBUGGING: Print what we're looking for
-        print(f"🔍 FileManager.list_categories() called for: {year}/{term}/{block}/{subject}")
-        print(f"   📁 Looking in: {subject_path}")
-        
         if not os.path.exists(subject_path):
-            print(f"   ❌ Subject path doesn't exist: {subject_path}")
             return []
         
-        # Get actual directories
-        actual_dirs = [d for d in os.listdir(subject_path) 
-                      if os.path.isdir(os.path.join(subject_path, d)) and not d.startswith('.')]
+        # Get ALL directories in subject path
+        all_dirs = [d for d in os.listdir(subject_path) 
+                   if os.path.isdir(os.path.join(subject_path, d)) and not d.startswith('.')]
         
-        print(f"   📂 Actual directories found: {actual_dirs}")
+        # Return directories that match config (case-insensitive)
+        expected_categories = NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].keys()
         
-        # Get expected categories from config
-        expected_categories = list(NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].keys())
-        print(f"   📋 Expected categories from config: {expected_categories}")
-        
-        # Only return directories that exist AND are in config
-        categories = [c for c in actual_dirs
-                     if c in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]]
-        
-        print(f"   ✅ Final categories returned: {categories}")
-        print()
+        # Case-insensitive matching
+        categories = []
+        for dir_name in all_dirs:
+            for expected_category in expected_categories:
+                if dir_name.lower() == expected_category.lower():
+                    categories.append(dir_name)
+                    break
         
         return sorted(categories)
     
@@ -177,15 +170,19 @@ class FileManager:
             block in structure[year]["terms"][term]["blocks"] and
             "subjects" in structure[year]["terms"][term]["blocks"][block] and
             subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
-            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
-            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["display_name"]
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
+            
+            # Case-insensitive lookup
+            for config_category, config_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
+                if config_category.lower() == category.lower():
+                    return config_data["display_name"]
+        
         return category.title()
     
     @staticmethod
     @lru_cache(maxsize=1024)
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
-        """Get list of available subtopics for a category - using numbered filenames"""
+        """Get list of available subtopics for a category - SIMPLIFIED VERSION"""
         structure = NAVIGATION_STRUCTURE
         if (year not in structure or 
             "terms" not in structure[year] or
@@ -194,58 +191,41 @@ class FileManager:
             block not in structure[year]["terms"][term]["blocks"] or
             "subjects" not in structure[year]["terms"][term]["blocks"][block] or
             subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
-            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
-            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
             return []
         
         category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
         
-        # DEBUGGING
-        print(f"🔍 FileManager.list_subtopics() called for: {year}/{term}/{block}/{subject}/{category}")
-        print(f"   📁 Looking in: {category_path}")
-        
         if not os.path.exists(category_path):
-            print(f"   ❌ Category path doesn't exist: {category_path}")
             return []
         
-        # Get all CSV files
+        # Get ALL CSV files in category path
         all_csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv') and not f.startswith('.')]
-        print(f"   📄 All CSV files found: {all_csv_files}")
         
-        # Get expected subtopics from config
-        expected_subtopics = list(structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
-        print(f"   📋 Expected subtopics from config: {expected_subtopics}")
+        # Get expected files from config (case-insensitive matching)
+        expected_files = []
+        for config_category, config_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
+            if config_category.lower() == category.lower():
+                expected_files = list(config_data["subtopics"].keys())
+                break
         
-        # CASE-INSENSITIVE MATCHING: Create lowercase versions for comparison
-        all_csv_files_lower = [f.lower() for f in all_csv_files]
-        expected_subtopics_lower = [f.lower() for f in expected_subtopics]
+        # Return files that match expected files (case-insensitive)
+        matching_files = []
+        for csv_file in all_csv_files:
+            for expected_file in expected_files:
+                if csv_file.lower() == expected_file.lower():
+                    matching_files.append(csv_file)
+                    break
         
-        # Find matches (case-insensitive)
-        subtopics = []
-        for expected_file in expected_subtopics:
-            if expected_file.lower() in all_csv_files_lower:
-                # Find the actual filename with correct case
-                actual_file_index = all_csv_files_lower.index(expected_file.lower())
-                actual_file = all_csv_files[actual_file_index]
-                subtopics.append(actual_file)
-                print(f"   ✅ Matched: {expected_file} → {actual_file}")
-            else:
-                print(f"   ❌ No match for: {expected_file}")
-        
-        # Sort by the numeric prefix to maintain order
-        sorted_subtopics = sorted(subtopics, key=lambda x: (
+        # Sort by numeric prefix
+        return sorted(matching_files, key=lambda x: (
             int(x.split('_')[0]) if x.split('_')[0].isdigit() else float('inf'), 
             x
         ))
-        
-        print(f"   🎯 Final subtopics returned: {sorted_subtopics}")
-        print()
-        
-        return sorted_subtopics
     
     @staticmethod
     def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
-        """Get display name for subtopic - subtopic is the numbered filename"""
+        """Get display name for subtopic"""
         structure = NAVIGATION_STRUCTURE
         if (year in structure and 
             "terms" in structure[year] and
@@ -254,40 +234,25 @@ class FileManager:
             block in structure[year]["terms"][term]["blocks"] and
             "subjects" in structure[year]["terms"][term]["blocks"][block] and
             subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
-            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] and
-            "subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
-            subtopic in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
-            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"][subtopic]
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]):
+            
+            # Case-insensitive lookup
+            for config_category, category_data in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].items():
+                if config_category.lower() == category.lower():
+                    for config_subtopic, display_name in category_data["subtopics"].items():
+                        if config_subtopic.lower() == subtopic.lower():
+                            return display_name
         
-        # Fallback: remove .csv and format the filename
-        display_name = subtopic[:-4]  # Remove .csv
+        # Fallback
+        display_name = subtopic[:-4] if subtopic.endswith('.csv') else subtopic
         if '_' in display_name:
-            # Remove the number prefix for display
             display_name = display_name.split('_', 1)[1]
         return display_name.replace('_', ' ').title()
     
     @staticmethod
     def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file - subtopic is the numbered filename"""
-        structure = NAVIGATION_STRUCTURE
-        
-        # Check if this path exists in navigation structure
-        if (year not in structure or 
-            "terms" not in structure[year] or
-            term not in structure[year]["terms"] or
-            "blocks" not in structure[year]["terms"][term] or
-            block not in structure[year]["terms"][term]["blocks"] or
-            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
-            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
-            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
-            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] or
-            "subtopics" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] or
-            subtopic not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
-            logger.error(f"❌ Path not in navigation structure: {year}/{term}/{block}/{subject}/{category}/{subtopic}")
-            return []
-        
-        # Construct file path - subtopic is already the filename
+        """Load questions from CSV file"""
+        # Construct file path
         file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
         
         logger.info(f"📁 Loading questions from: {file_path}")
