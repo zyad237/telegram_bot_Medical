@@ -1,4 +1,4 @@
-# [file name]: file_manager.py
+# [file name]: file_manager.py (UPDATED)
 """
 Simplified file management for quiz data with automated navigation
 """
@@ -75,17 +75,26 @@ class FileManager:
     
     @staticmethod
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
-        """List available subtopics for a category"""
+        """List available subtopics for a category - FIXED VERSION"""
+        # First try to get from navigation structure
         path = FileManager.get_navigation_path(year, term, block, subject, category)
-        if path and "subtopics" in path:
+        if path and "subtopics" in path and path["subtopics"]:
             # Return the actual CSV filenames from the navigation structure
-            return list(path["subtopics"].keys())
+            csv_files = list(path["subtopics"].keys())
+            logger.info(f"✅ Found {len(csv_files)} CSV files in navigation structure for {category}")
+            return csv_files
         
         # Fallback: try to find files in the directory
         category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
+        logger.info(f"🔍 Scanning directory: {category_path}")
+        
         if os.path.exists(category_path):
             csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv')]
-            return sorted(csv_files)
+            csv_files.sort()
+            logger.info(f"✅ Found {len(csv_files)} CSV files in directory for {category}: {csv_files}")
+            return csv_files
+        else:
+            logger.warning(f"❌ Category path does not exist: {category_path}")
         
         return []
     
@@ -138,28 +147,7 @@ class FileManager:
             
             if not os.path.exists(file_path):
                 logger.error(f"❌ File not found: {file_path}")
-                
-                # Try alternative path structures
-                alternative_paths = [
-                    os.path.join(CONFIG["data_dir"], year, subject, category, subtopic),
-                    os.path.join(CONFIG["data_dir"], year, category, subtopic),
-                    os.path.join(CONFIG["data_dir"], subject, category, subtopic),
-                    os.path.join(CONFIG["data_dir"], category, subtopic),
-                ]
-                
-                for alt_path in alternative_paths:
-                    if os.path.exists(alt_path):
-                        file_path = alt_path
-                        logger.info(f"✅ Using alternative path: {alt_path}")
-                        break
-                else:
-                    logger.error(f"❌ File not found in any alternative path: {subtopic}")
-                    # List what's actually in the directory for debugging
-                    expected_dir = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
-                    if os.path.exists(expected_dir):
-                        actual_files = os.listdir(expected_dir)
-                        logger.info(f"📁 Files in {expected_dir}: {actual_files}")
-                    return []
+                return []
             
             logger.info(f"📖 Loading questions from: {file_path}")
             
