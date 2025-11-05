@@ -135,18 +135,48 @@ class FileManager:
                 reader = csv.DictReader(file)
                 
                 for row in reader:
-                    if all(key in row for key in ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct']):
-                        question = {
-                            "question": row['question'],
-                            "options": [
-                                row['option_a'],
-                                row['option_b'], 
-                                row['option_c'],
-                                row['option_d']
-                            ],
-                            "correct_index": ['a', 'b', 'c', 'd'].index(row['correct'].lower())
-                        }
-                        questions.append(question)
+                    # Try multiple column name formats to be more flexible
+                    question_text = None
+                    options = []
+                    correct_answer = None
+                    
+                    # Method 1: Check for your format (Question, Option1, Option2, Option3, Option4, Correct Answer)
+                    if 'Question' in row and 'Option1' in row and 'Option2' in row and 'Option3' in row and 'Option4' in row and 'Correct Answer' in row:
+                        question_text = row['Question']
+                        options = [row['Option1'], row['Option2'], row['Option3'], row['Option4']]
+                        correct_answer = row['Correct Answer'].strip().upper()
+                    
+                    # Method 2: Check for the original expected format
+                    elif 'question' in row and 'option_a' in row and 'option_b' in row and 'option_c' in row and 'option_d' in row and 'correct' in row:
+                        question_text = row['question']
+                        options = [row['option_a'], row['option_b'], row['option_c'], row['option_d']]
+                        correct_answer = row['correct'].strip().upper()
+                    
+                    # Method 3: Try to auto-detect columns (fallback)
+                    else:
+                        # Get all column names
+                        columns = list(row.keys())
+                        if len(columns) >= 6:  # At least Question + 4 options + correct answer
+                            question_text = row[columns[0]]
+                            options = [row[columns[1]], row[columns[2]], row[columns[3]], row[columns[4]]]
+                            correct_answer = row[columns[5]].strip().upper()
+                    
+                    # Validate and process the question
+                    if question_text and len(options) == 4 and correct_answer:
+                        # Map correct answer to index (A=0, B=1, C=2, D=3)
+                        correct_index_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+                        
+                        if correct_answer in correct_index_map:
+                            question = {
+                                "question": question_text,
+                                "options": options,
+                                "correct_index": correct_index_map[correct_answer]
+                            }
+                            questions.append(question)
+                        else:
+                            logger.warning(f"⚠️ Invalid correct answer '{correct_answer}' in question: {question_text[:50]}...")
+                    else:
+                        logger.warning(f"⚠️ Skipping invalid row in {subtopic}: {row}")
             
             logger.info(f"✅ Loaded {len(questions)} questions from {file_path}")
             return questions
