@@ -1,6 +1,6 @@
 # [file name]: init_navigation.py
 """
-Initialize navigation structure at startup - FIXED
+Initialize navigation structure at startup - FIXED CASE
 """
 import os
 import logging
@@ -9,10 +9,10 @@ from config import CONFIG
 logger = logging.getLogger(__name__)
 
 def initialize_navigation():
-    """Initialize the navigation structure - FIXED VERSION"""
+    """Initialize the navigation structure - FIXED CASE VERSION"""
     print("🔄 Building navigation structure...")
     
-    # Build the structure manually
+    # Build the structure manually with correct case
     NAVIGATION_STRUCTURE = {
         "year_1": {
             "display_name": "📅 Year 1",
@@ -55,11 +55,11 @@ def initialize_navigation():
                                             "display_name": "📝 Midterm Exams", 
                                             "subtopics": {}
                                         },
-                                        "final": {
+                                        "Final": {  # ← CAPITAL F
                                             "display_name": "🎯 Final Exams",
                                             "subtopics": {}
                                         },
-                                        "formative": {
+                                        "Formative": {  # ← CAPITAL F
                                             "display_name": "📚 Formative Assessments",
                                             "subtopics": {}
                                         }
@@ -78,8 +78,11 @@ def initialize_navigation():
     for year in ["year_1"]:
         for term in ["term_1"]:
             for block in ["block_1"]:
-                for subject in ["anatomy", "histology"]:
-                    for category in ["general", "midterm", "final", "formative"]:
+                for subject, categories in [
+                    ("anatomy", ["general", "midterm", "final", "formative"]),
+                    ("histology", ["general", "midterm", "Final", "Formative"])  # ← Correct case
+                ]:
+                    for category in categories:
                         category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
                         
                         if os.path.exists(category_path):
@@ -104,7 +107,7 @@ def initialize_navigation():
                             
                             print(f"✅ {subject}/{category}: {len(csv_files)} CSV files")
                         else:
-                            print(f"⚠️  Path not found: {category_path}")
+                            print(f"❌ Path not found: {category_path}")
     
     print(f"🎯 Total CSV files loaded: {csv_total}")
     

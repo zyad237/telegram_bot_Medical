@@ -1,12 +1,19 @@
-# check_structure.py
+# find_structure.py
 import os
-from config import CONFIG, NAVIGATION_STRUCTURE
 
-print("NAVIGATION_STRUCTURE:", NAVIGATION_STRUCTURE)
-print("Is empty?", not bool(NAVIGATION_STRUCTURE))
+def find_actual_paths():
+    base_dir = "data"
+    print("🔍 Scanning directory structure...")
+    
+    for root, dirs, files in os.walk(base_dir):
+        level = root.replace(base_dir, '').count(os.sep)
+        indent = '  ' * level
+        print(f"{indent}📁 {os.path.basename(root)}/")
+        
+        subindent = '  ' * (level + 1)
+        for file in files:
+            if file.endswith('.csv'):
+                print(f"{subindent}📄 {file}")
 
-data_dir = CONFIG["data_dir"]
-print("Data dir exists:", os.path.exists(data_dir))
-
-if os.path.exists(data_dir):
-    print("Contents:", os.listdir(data_dir))
+if __name__ == "__main__":
+    find_actual_paths()
