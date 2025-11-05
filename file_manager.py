@@ -182,7 +182,7 @@ class FileManager:
             return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["display_name"]
         return category.title()
     
-        @staticmethod
+    @staticmethod
     @lru_cache(maxsize=1024)
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
         """Get list of available subtopics for a category - using numbered filenames"""
