@@ -1,5 +1,4 @@
 # [file name]: file_manager.py
-[file content begin]
 """
 File management for quiz data with 6-level navigation
 """
@@ -155,4 +154,3 @@ class FileManager:
         except Exception as e:
             logger.error(f"❌ Error loading questions from {subtopic}: {e}")
             return []
-[file content end]
