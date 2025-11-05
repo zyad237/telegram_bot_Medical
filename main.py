@@ -1,3 +1,4 @@
+# [file name]: main.py
 #!/usr/bin/env python3
 """
 Telegram Quiz Bot - Main Entry Point
@@ -11,7 +12,8 @@ from utils import acquire_startup_lock
 from database import DatabaseManager
 from file_manager import FileManager
 from quiz_manager import QuizManager
-from handlers import BotHandlers
+from bot_handlers import BotHandlers
+from init_navigation import initialize_navigation  # ADD THIS IMPORT
 
 # Initialize logging
 logging.basicConfig(
@@ -56,6 +58,11 @@ def main():
         return
     
     try:
+        # Initialize navigation structure FIRST
+        if not initialize_navigation():
+            logger.error("❌ Failed to initialize navigation structure. Exiting.")
+            return
+        
         # Initialize components
         logger.info("🔄 Initializing components...")
         

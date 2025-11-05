@@ -5,7 +5,8 @@ import os
 import csv
 import logging
 from typing import List, Dict, Optional
-from config import CONFIG, NAVIGATION_STRUCTURE
+from config import CONFIG
+from init_navigation import NAVIGATION_STRUCTURE  # CHANGE THIS IMPORT
 
 logger = logging.getLogger(__name__)
 

@@ -1,181 +1,71 @@
-#!/usr/bin/env python3
+# [file name]: test_auto_nav.py
 """
-Comprehensive fix for directory and file structure issues
+Test the automated navigation system
 """
-import os
-import shutil
-from config import NAVIGATION_STRUCTURE, CONFIG
+from auto_navigator import AutoNavigator
+from file_manager import FileManager
 
-def comprehensive_diagnosis():
-    print("🔍 COMPREHENSIVE STRUCTURE DIAGNOSIS")
-    print("=" * 70)
+def test_automated_system():
+    print("🧪 Testing Automated Navigation System")
+    print("=" * 50)
     
-    year = "year_1"
-    term = "term_1" 
-    block = "block_1"
-    subject = "anatomy"
+    # Build structure
+    structure = AutoNavigator.build_navigation_structure()
     
-    base_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
-    
-    print(f"📁 Base path: {base_path}")
-    print()
-    
-    if not os.path.exists(base_path):
-        print(f"❌ Base path doesn't exist: {base_path}")
+    if not structure:
+        print("❌ No structure built! Check your data directory.")
         return
     
-    # Check each category
-    categories = ["general", "Midterm", "Final", "Formative"]
+    print("✅ Navigation Structure Built Successfully!")
+    print("\n📋 Available Content:")
     
-    for category in categories:
-        category_path = os.path.join(base_path, category)
-        print(f"\n📂 Checking: {category}")
-        print(f"   Path: {category_path}")
+    # Test listing all available content
+    years = FileManager.list_years()
+    print(f"Years: {years}")
+    
+    for year in years:
+        print(f"\n📅 {FileManager.get_year_display_name(year)}")
+        subjects = FileManager.list_subjects(year, "term_1", "block_1")
         
-        # Check if directory exists
-        if not os.path.exists(category_path):
-            print(f"   ❌ DIRECTORY MISSING")
-            continue
-        
-        # Check what CSV files exist
-        csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv')] if os.path.exists(category_path) else []
-        print(f"   📄 Found {len(csv_files)} CSV files: {csv_files}")
-        
-        # Check what files are expected from config
-        expected_files = []
-        if (year in NAVIGATION_STRUCTURE and 
-            "terms" in NAVIGATION_STRUCTURE[year] and
-            term in NAVIGATION_STRUCTURE[year]["terms"] and
-            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
-            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] and
-            "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] and
-            subject in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject] and
-            category in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+        for subject in subjects:
+            print(f"  📖 {FileManager.get_subject_display_name(year, 'term_1', 'block_1', subject)}")
+            categories = FileManager.list_categories(year, "term_1", "block_1", subject)
             
-            expected_files = list(NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
-        
-        print(f"   📋 Expected files from config: {expected_files}")
-        
-        # Check for mismatches
-        missing_files = set(expected_files) - set(csv_files)
-        extra_files = set(csv_files) - set(expected_files)
-        
-        if missing_files:
-            print(f"   ❌ MISSING FILES: {list(missing_files)}")
-        if extra_files:
-            print(f"   ⚠️  EXTRA FILES (not in config): {list(extra_files)}")
-        
-        if not missing_files and not extra_files:
-            print(f"   ✅ Perfect match!")
-
-def create_missing_files():
-    print("\n" + "=" * 70)
-    print("🛠️  CREATING MISSING FILES AND DIRECTORIES")
-    print("=" * 70)
+            for category in categories:
+                print(f"    🗂️ {FileManager.get_category_display_name(year, 'term_1', 'block_1', subject, category)}")
+                subtopics = FileManager.list_subtopics(year, "term_1", "block_1", subject, category)
+                
+                for subtopic in subtopics[:3]:  # Show first 3
+                    display_name = FileManager.get_subtopic_display_name(year, "term_1", "block_1", subject, category, subtopic)
+                    print(f"      📄 {display_name}")
+                
+                if len(subtopics) > 3:
+                    print(f"      ... and {len(subtopics) - 3} more")
     
-    year = "year_1"
-    term = "term_1"
-    block = "block_1" 
-    subject = "anatomy"
-    
-    base_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
-    
-    # Ensure base path exists
-    os.makedirs(base_path, exist_ok=True)
-    
-    categories = ["general", "Midterm", "Final", "Formative"]
-    
-    for category in categories:
-        category_path = os.path.join(base_path, category)
+    # Test loading a file
+    print("\n🔍 Testing File Loading...")
+    if years and subjects:
+        test_year = years[0]
+        test_subject = subjects[0]
+        test_categories = FileManager.list_categories(test_year, "term_1", "block_1", test_subject)
         
-        # Create category directory
-        os.makedirs(category_path, exist_ok=True)
-        print(f"\n📁 Ensuring directory: {category_path}")
-        
-        # Get expected files from config
-        expected_files = []
-        if (year in NAVIGATION_STRUCTURE and 
-            "terms" in NAVIGATION_STRUCTURE[year] and
-            term in NAVIGATION_STRUCTURE[year]["terms"] and
-            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
-            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] and
-            "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] and
-            subject in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"] and
-            "categories" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject] and
-            category in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+        if test_categories:
+            test_category = test_categories[0]
+            test_subtopics = FileManager.list_subtopics(test_year, "term_1", "block_1", test_subject, test_category)
             
-            expected_files = list(NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
-        
-        # Create empty CSV files for missing ones
-        for expected_file in expected_files:
-            file_path = os.path.join(category_path, expected_file)
-            if not os.path.exists(file_path):
-                # Create empty CSV with headers
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write("Question,Option A,Option B,Option C,Option D,Correct Answer\n")
-                    f.write("Sample question,Choice A,Choice B,Choice C,Choice D,A\n")
-                print(f"   ✅ Created: {expected_file}")
-            else:
-                print(f"   📄 Already exists: {expected_file}")
-
-def copy_files_from_general():
-    """Copy files from general to other categories as templates"""
-    print("\n" + "=" * 70)
-    print("📋 COPYING TEMPLATE FILES FROM GENERAL CATEGORY")
-    print("=" * 70)
-    
-    year = "year_1"
-    term = "term_1"
-    block = "block_1" 
-    subject = "anatomy"
-    
-    base_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
-    general_path = os.path.join(base_path, "general")
-    
-    if not os.path.exists(general_path):
-        print("❌ General directory doesn't exist - cannot copy templates")
-        return
-    
-    # Get CSV files from general
-    general_files = [f for f in os.listdir(general_path) if f.endswith('.csv')]
-    
-    if not general_files:
-        print("❌ No CSV files in general directory")
-        return
-    
-    print(f"📄 Found {len(general_files)} files in general directory")
-    
-    # Copy to other categories
-    other_categories = ["Midterm", "Final", "Formative"]
-    
-    for category in other_categories:
-        category_path = os.path.join(base_path, category)
-        os.makedirs(category_path, exist_ok=True)
-        
-        print(f"\n📁 Copying to {category}:")
-        
-        # Copy first 3 files from general as templates
-        for i, source_file in enumerate(general_files[:3]):
-            # Create new filename for this category
-            if category == "Midterm":
-                new_filename = f"{i+1:02d}_Midterm Questions.csv"
-            elif category == "Final":
-                new_filename = f"{i+1:02d}_Final Questions.csv"  
-            elif category == "Formative":
-                new_filename = f"{i+1:02d}_Formative.csv"
-            
-            source_path = os.path.join(general_path, source_file)
-            dest_path = os.path.join(category_path, new_filename)
-            
-            if not os.path.exists(dest_path):
-                shutil.copy2(source_path, dest_path)
-                print(f"   ✅ Copied: {source_file} → {new_filename}")
-            else:
-                print(f"   📄 Already exists: {new_filename}")
+            if test_subtopics:
+                test_subtopic = test_subtopics[0]
+                print(f"Testing: {test_year}/{test_subject}/{test_category}/{test_subtopic}")
+                
+                questions = FileManager.load_questions(
+                    test_year, "term_1", "block_1", test_subject, test_category, test_subtopic
+                )
+                
+                if questions:
+                    print(f"✅ SUCCESS: Loaded {len(questions)} questions")
+                    print(f"Sample: {questions[0]['question'][:50]}...")
+                else:
+                    print("❌ FAILED: No questions loaded")
 
 if __name__ == "__main__":
-    comprehensive_diagnosis()
-    create_missing_files()
-    copy_files_from_general()
-    print("\n🎉 Setup complete! Check the structure above.")
+    test_automated_system()
