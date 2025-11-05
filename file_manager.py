@@ -139,16 +139,27 @@ class FileManager:
             return None
 
     @staticmethod
-    def load_questions(file_path: str) -> List[Dict[str, Any]]:
+    def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict[str, Any]]:
         """
-        Load questions from CSV file
+        Load questions from CSV file - matches QuizManager expectations
         
         Expected CSV format:
         question,option1,option2,option3,option4,correct_answer,explanation
+        
+        Returns format that QuizManager expects:
+        {
+            "question": "text",
+            "options": ["opt1", "opt2", "opt3", "opt4"],
+            "correct_index": 0,
+            "explanation": "text"
+        }
         """
         questions = []
         
-        if not os.path.exists(file_path):
+        # Get file path using navigation parameters
+        file_path = FileManager.get_subtopic_file_path(year, term, block, subject, category, subtopic)
+        
+        if not file_path:
             logger.error(f"❌ CSV file not found: {file_path}")
             return questions
         
@@ -173,10 +184,27 @@ class FileManager:
                         logger.warning(f"⚠️ Skipping row {row_num}: insufficient options")
                         continue
                     
+                    # Find correct index
+                    correct_answer = row['correct_answer']
+                    correct_index = -1
+                    
+                    # Try exact match first
+                    if correct_answer in options:
+                        correct_index = options.index(correct_answer)
+                    else:
+                        # Try matching by letter (A, B, C, D)
+                        letter_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+                        if correct_answer.upper() in letter_map:
+                            correct_index = letter_map[correct_answer.upper()]
+                    
+                    if correct_index == -1:
+                        logger.warning(f"⚠️ Skipping row {row_num}: could not find correct answer '{correct_answer}' in options")
+                        continue
+                    
                     question_data = {
                         'question': row['question'],
                         'options': options,
-                        'correct_answer': row['correct_answer'],
+                        'correct_index': correct_index,
                         'explanation': row.get('explanation', 'No explanation provided.')
                     }
                     
