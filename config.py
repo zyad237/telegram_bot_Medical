@@ -67,7 +67,7 @@ NAVIGATION_STRUCTURE = {
                                             "32_Twins.csv": "32. Twins"
                                         }
                                     },
-                                    "Midterm": {
+                                    "midterm": {
                                         "display_name": "📝 Midterm Exams",
                                         "subtopics": {
                                             "01_Midterm Questions.csv": "Midterm 1",
