@@ -1,4 +1,3 @@
-# [file name]: main.py
 #!/usr/bin/env python3
 """
 Telegram Quiz Bot - Main Entry Point
@@ -12,8 +11,7 @@ from utils import acquire_startup_lock
 from database import DatabaseManager
 from file_manager import FileManager
 from quiz_manager import QuizManager
-from bot_handlers import BotHandlers
-from init_navigation import initialize_navigation  # ADD THIS IMPORT
+from handlers import BotHandlers
 
 # Initialize logging
 logging.basicConfig(
@@ -58,11 +56,6 @@ def main():
         return
     
     try:
-        # Initialize navigation structure FIRST
-        if not initialize_navigation():
-            logger.error("❌ Failed to initialize navigation structure. Exiting.")
-            return
-        
         # Initialize components
         logger.info("🔄 Initializing components...")
         
@@ -82,7 +75,7 @@ def main():
         bot_handlers.register_handlers(application)
         application.add_error_handler(error_handler)
         
-        # Log available structure
+        # Log available years and structure
         years = FileManager.list_years()
         if years:
             logger.info(f"📚 Available years: {', '.join(years)}")
@@ -90,6 +83,22 @@ def main():
                 terms = FileManager.list_terms(year)
                 if terms:
                     logger.info(f"   {year}: {len(terms)} terms")
+                    for term in terms:
+                        blocks = FileManager.list_blocks(year, term)
+                        if blocks:
+                            logger.info(f"     {term}: {len(blocks)} blocks")
+                            for block in blocks:
+                                subjects = FileManager.list_subjects(year, term, block)
+                                if subjects:
+                                    logger.info(f"       {block}: {len(subjects)} subjects")
+                                    for subject in subjects:
+                                        categories = FileManager.list_categories(year, term, block, subject)
+                                        if categories:
+                                            logger.info(f"         {subject}: {len(categories)} categories")
+        else:
+            logger.warning("⚠️ No academic data found in data folder")
+            logger.info("💡 Please check your data directory structure:")
+            logger.info("   data/year_1/term_1/block_1/subject/category/")
         
         # Start the bot
         logger.info("🤖 Medical Quiz Bot is starting...")

@@ -1,240 +1,339 @@
-# [file name]: file_manager.py (UPDATED)
 """
-Simplified file management for quiz data with automated navigation
+File management for 6-level navigation structure
 """
 import os
 import csv
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict
+from functools import lru_cache
+
 from config import CONFIG, NAVIGATION_STRUCTURE
+from utils import sanitize_text
 
 logger = logging.getLogger(__name__)
 
 class FileManager:
-    
     @staticmethod
-    def get_navigation_path(year: str, term: str = None, block: str = None, 
-                           subject: str = None, category: str = None) -> Optional[Dict]:
-        """Get navigation path from structure"""
-        try:
-            path = NAVIGATION_STRUCTURE.get(year)
-            if not path:
-                return None
-            
-            if term:
-                path = path["terms"].get(term)
-                if not path:
-                    return None
-                
-            if block:
-                path = path["blocks"].get(block)
-                if not path:
-                    return None
-                    
-            if subject:
-                path = path["subjects"].get(subject)
-                if not path:
-                    return None
-                    
-            if category:
-                path = path["categories"].get(category)
-                
-            return path
-            
-        except (KeyError, TypeError):
-            return None
-    
-    @staticmethod
+    @lru_cache(maxsize=32)
     def list_years() -> List[str]:
-        """List available years"""
-        return list(NAVIGATION_STRUCTURE.keys())
-    
-    @staticmethod
-    def list_terms(year: str) -> List[str]:
-        """List available terms for a year"""
-        path = FileManager.get_navigation_path(year)
-        return list(path["terms"].keys()) if path and "terms" in path else []
-    
-    @staticmethod
-    def list_blocks(year: str, term: str) -> List[str]:
-        """List available blocks for a term"""
-        path = FileManager.get_navigation_path(year, term)
-        return list(path["blocks"].keys()) if path and "blocks" in path else []
-    
-    @staticmethod
-    def list_subjects(year: str, term: str, block: str) -> List[str]:
-        """List available subjects for a block"""
-        path = FileManager.get_navigation_path(year, term, block)
-        return list(path["subjects"].keys()) if path and "subjects" in path else []
-    
-    @staticmethod
-    def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
-        """List available categories for a subject"""
-        path = FileManager.get_navigation_path(year, term, block, subject)
-        return list(path["categories"].keys()) if path and "categories" in path else []
-    
-    @staticmethod
-    def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
-        """List available subtopics for a category - FIXED VERSION"""
-        # First try to get from navigation structure
-        path = FileManager.get_navigation_path(year, term, block, subject, category)
-        if path and "subtopics" in path and path["subtopics"]:
-            # Return the actual CSV filenames from the navigation structure
-            csv_files = list(path["subtopics"].keys())
-            logger.info(f"✅ Found {len(csv_files)} CSV files in navigation structure for {category}")
-            return csv_files
+        """Get list of available years from data directory"""
+        data_dir = CONFIG["data_dir"]
+        if not os.path.exists(data_dir):
+            return []
         
-        # Fallback: try to find files in the directory
-        category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
-        logger.info(f"🔍 Scanning directory: {category_path}")
-        
-        if os.path.exists(category_path):
-            csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv')]
-            csv_files.sort()
-            logger.info(f"✅ Found {len(csv_files)} CSV files in directory for {category}: {csv_files}")
-            return csv_files
-        else:
-            logger.warning(f"❌ Category path does not exist: {category_path}")
-        
-        return []
+        years = [d for d in os.listdir(data_dir) 
+                if os.path.isdir(os.path.join(data_dir, d)) 
+                and not d.startswith('.')
+                and d in NAVIGATION_STRUCTURE]
+        return sorted(years)
     
     @staticmethod
     def get_year_display_name(year: str) -> str:
         """Get display name for year"""
-        path = FileManager.get_navigation_path(year)
-        return path["display_name"] if path and "display_name" in path else year
+        return NAVIGATION_STRUCTURE.get(year, {}).get("display_name", year.replace('_', ' ').title())
+    
+    @staticmethod
+    @lru_cache(maxsize=64)
+    def list_terms(year: str) -> List[str]:
+        """Get list of available terms for a year"""
+        if year not in NAVIGATION_STRUCTURE or "terms" not in NAVIGATION_STRUCTURE[year]:
+            return []
+        
+        year_path = os.path.join(CONFIG["data_dir"], year)
+        if not os.path.exists(year_path):
+            return []
+        
+        terms = [t for t in os.listdir(year_path) 
+                if os.path.isdir(os.path.join(year_path, t))
+                and not t.startswith('.')
+                and t in NAVIGATION_STRUCTURE[year]["terms"]]
+        return sorted(terms)
     
     @staticmethod
     def get_term_display_name(year: str, term: str) -> str:
         """Get display name for term"""
-        path = FileManager.get_navigation_path(year, term)
-        return path["display_name"] if path and "display_name" in path else term
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["display_name"]
+        return term.replace('_', ' ').title()
+    
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def list_blocks(year: str, term: str) -> List[str]:
+        """Get list of available blocks for a term"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"]):
+            return []
+        
+        term_path = os.path.join(CONFIG["data_dir"], year, term)
+        if not os.path.exists(term_path):
+            return []
+        
+        blocks = [b for b in os.listdir(term_path)
+                 if os.path.isdir(os.path.join(term_path, b))
+                 and not b.startswith('.')
+                 and "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term]
+                 and b in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]]
+        return sorted(blocks)
     
     @staticmethod
     def get_block_display_name(year: str, term: str, block: str) -> str:
         """Get display name for block"""
-        path = FileManager.get_navigation_path(year, term, block)
-        return path["display_name"] if path and "display_name" in path else block
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"] and
+            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
+            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["display_name"]
+        return block.replace('_', ' ').title()
+    
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def list_subjects(year: str, term: str, block: str) -> List[str]:
+        """Get list of available subjects for a block"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"] or
+            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
+            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"]):
+            return []
+        
+        block_path = os.path.join(CONFIG["data_dir"], year, term, block)
+        if not os.path.exists(block_path):
+            return []
+        
+        subjects = [s for s in os.listdir(block_path)
+                   if os.path.isdir(os.path.join(block_path, s))
+                   and not s.startswith('.')
+                   and "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]
+                   and s in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]]
+        return sorted(subjects)
     
     @staticmethod
     def get_subject_display_name(year: str, term: str, block: str, subject: str) -> str:
         """Get display name for subject"""
-        path = FileManager.get_navigation_path(year, term, block, subject)
-        return path["display_name"] if path and "display_name" in path else subject
+        if (year in NAVIGATION_STRUCTURE and 
+            "terms" in NAVIGATION_STRUCTURE[year] and
+            term in NAVIGATION_STRUCTURE[year]["terms"] and
+            "blocks" in NAVIGATION_STRUCTURE[year]["terms"][term] and
+            block in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] and
+            "subjects" in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] and
+            subject in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
+            return NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["display_name"]
+        return subject.title()
+    
+    @staticmethod
+    @lru_cache(maxsize=512)
+    def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
+        """Get list of available categories for a subject"""
+        if (year not in NAVIGATION_STRUCTURE or 
+            "terms" not in NAVIGATION_STRUCTURE[year] or
+            term not in NAVIGATION_STRUCTURE[year]["terms"] or
+            "blocks" not in NAVIGATION_STRUCTURE[year]["terms"][term] or
+            block not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"] or
+            "subjects" not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block] or
+            subject not in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"]):
+            return []
+        
+        subject_path = os.path.join(CONFIG["data_dir"], year, term, block, subject)
+        
+        # DEBUGGING: Print what we're looking for
+        print(f"🔍 FileManager.list_categories() called for: {year}/{term}/{block}/{subject}")
+        print(f"   📁 Looking in: {subject_path}")
+        
+        if not os.path.exists(subject_path):
+            print(f"   ❌ Subject path doesn't exist: {subject_path}")
+            return []
+        
+        # Get actual directories
+        actual_dirs = [d for d in os.listdir(subject_path) 
+                      if os.path.isdir(os.path.join(subject_path, d)) and not d.startswith('.')]
+        
+        print(f"   📂 Actual directories found: {actual_dirs}")
+        
+        # Get expected categories from config
+        expected_categories = list(NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"].keys())
+        print(f"   📋 Expected categories from config: {expected_categories}")
+        
+        # Only return directories that exist AND are in config
+        categories = [c for c in actual_dirs
+                     if c in NAVIGATION_STRUCTURE[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]]
+        
+        print(f"   ✅ Final categories returned: {categories}")
+        print()
+        
+        return sorted(categories)
     
     @staticmethod
     def get_category_display_name(year: str, term: str, block: str, subject: str, category: str) -> str:
         """Get display name for category"""
-        path = FileManager.get_navigation_path(year, term, block, subject, category)
-        return path["display_name"] if path and "display_name" in path else category
+        structure = NAVIGATION_STRUCTURE
+        if (year in structure and 
+            "terms" in structure[year] and
+            term in structure[year]["terms"] and
+            "blocks" in structure[year]["terms"][term] and
+            block in structure[year]["terms"][term]["blocks"] and
+            "subjects" in structure[year]["terms"][term]["blocks"][block] and
+            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
+            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["display_name"]
+        return category.title()
+    
+    @staticmethod
+    @lru_cache(maxsize=1024)
+    def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
+        """Get list of available subtopics for a category - using numbered filenames"""
+        structure = NAVIGATION_STRUCTURE
+        if (year not in structure or 
+            "terms" not in structure[year] or
+            term not in structure[year]["terms"] or
+            "blocks" not in structure[year]["terms"][term] or
+            block not in structure[year]["terms"][term]["blocks"] or
+            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
+            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
+            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
+            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"]):
+            return []
+        
+        category_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
+        
+        # DEBUGGING
+        print(f"🔍 FileManager.list_subtopics() called for: {year}/{term}/{block}/{subject}/{category}")
+        print(f"   📁 Looking in: {category_path}")
+        
+        if not os.path.exists(category_path):
+            print(f"   ❌ Category path doesn't exist: {category_path}")
+            return []
+        
+        # Get all CSV files
+        all_csv_files = [f for f in os.listdir(category_path) if f.endswith('.csv') and not f.startswith('.')]
+        print(f"   📄 All CSV files found: {all_csv_files}")
+        
+        # Get expected subtopics from config
+        expected_subtopics = list(structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
+        print(f"   📋 Expected subtopics from config: {expected_subtopics}")
+        
+        # Only return files that exist AND are in config
+        subtopics = []
+        for file in all_csv_files:
+            if file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]:
+                subtopics.append(file)
+        
+        # Sort by the numeric prefix to maintain order
+        sorted_subtopics = sorted(subtopics, key=lambda x: (
+            int(x.split('_')[0]) if x.split('_')[0].isdigit() else float('inf'), 
+            x
+        ))
+        
+        print(f"   ✅ Final subtopics returned: {sorted_subtopics}")
+        print()
+        
+        return sorted_subtopics
     
     @staticmethod
     def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
-        """Get display name for subtopic"""
-        path = FileManager.get_navigation_path(year, term, block, subject, category)
-        if path and "subtopics" in path and subtopic in path["subtopics"]:
-            return path["subtopics"][subtopic]
-        return subtopic
+        """Get display name for subtopic - subtopic is the numbered filename"""
+        structure = NAVIGATION_STRUCTURE
+        if (year in structure and 
+            "terms" in structure[year] and
+            term in structure[year]["terms"] and
+            "blocks" in structure[year]["terms"][term] and
+            block in structure[year]["terms"][term]["blocks"] and
+            "subjects" in structure[year]["terms"][term]["blocks"][block] and
+            subject in structure[year]["terms"][term]["blocks"][block]["subjects"] and
+            "categories" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] and
+            category in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] and
+            "subtopics" in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] and
+            subtopic in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
+            return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"][subtopic]
+        
+        # Fallback: remove .csv and format the filename
+        display_name = subtopic[:-4]  # Remove .csv
+        if '_' in display_name:
+            # Remove the number prefix for display
+            display_name = display_name.split('_', 1)[1]
+        return display_name.replace('_', ' ').title()
     
     @staticmethod
     def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file using simple path structure"""
-        try:
-            # Construct file path: data/year/term/block/subject/category/filename.csv
-            file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
-            
-            logger.info(f"🔍 Looking for file: {file_path}")
-            
-            if not os.path.exists(file_path):
-                logger.error(f"❌ File not found: {file_path}")
-                return []
-            
-            logger.info(f"📖 Loading questions from: {file_path}")
-            
-            questions = []
-            with open(file_path, 'r', encoding='utf-8') as file:
-                # Try different encodings if utf-8 fails
-                try:
-                    file.seek(0)
-                    reader = csv.DictReader(file)
-                    rows = list(reader)
-                except UnicodeDecodeError:
-                    logger.warning("⚠️ UTF-8 failed, trying latin-1")
-                    with open(file_path, 'r', encoding='latin-1') as file2:
-                        reader = csv.DictReader(file2)
-                        rows = list(reader)
-                except Exception as e:
-                    logger.error(f"❌ Error reading CSV: {e}")
-                    return []
-                
-                for i, row in enumerate(rows):
-                    # Try multiple column name formats
-                    question_text = None
-                    options = []
-                    correct_answer = None
-                    
-                    # Method 1: Your format (Question, Option1, Option2, Option3, Option4, Correct Answer)
-                    if 'Question' in row and 'Option1' in row and 'Option2' in row and 'Option3' in row and 'Option4' in row and 'Correct Answer' in row:
-                        question_text = row['Question'].strip()
-                        options = [
-                            row['Option1'].strip(),
-                            row['Option2'].strip(), 
-                            row['Option3'].strip(),
-                            row['Option4'].strip()
-                        ]
-                        correct_answer = row['Correct Answer'].strip().upper()
-                    
-                    # Method 2: Original format
-                    elif 'question' in row and 'option_a' in row and 'option_b' in row and 'option_c' in row and 'option_d' in row and 'correct' in row:
-                        question_text = row['question'].strip()
-                        options = [
-                            row['option_a'].strip(),
-                            row['option_b'].strip(),
-                            row['option_c'].strip(),
-                            row['option_d'].strip()
-                        ]
-                        correct_answer = row['correct'].strip().upper()
-                    
-                    # Method 3: Auto-detect columns
-                    else:
-                        columns = list(row.keys())
-                        if len(columns) >= 6:
-                            question_text = row[columns[0]].strip()
-                            options = [
-                                row[columns[1]].strip(),
-                                row[columns[2]].strip(),
-                                row[columns[3]].strip(),
-                                row[columns[4]].strip()
-                            ]
-                            correct_answer = row[columns[5]].strip().upper()
-                        else:
-                            logger.warning(f"⚠️ Row {i+1}: Not enough columns (need 6, got {len(columns)})")
-                            continue
-                    
-                    # Validate and process the question
-                    if question_text and len(options) == 4 and correct_answer:
-                        options = [opt for opt in options if opt]
-                        
-                        if len(options) == 4:
-                            correct_index_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
-                            
-                            if correct_answer in correct_index_map:
-                                question = {
-                                    "question": question_text,
-                                    "options": options,
-                                    "correct_index": correct_index_map[correct_answer]
-                                }
-                                questions.append(question)
-                            else:
-                                logger.warning(f"⚠️ Row {i+1}: Invalid correct answer '{correct_answer}'")
-                        else:
-                            logger.warning(f"⚠️ Row {i+1}: Not enough valid options (need 4, got {len(options)})")
-                    else:
-                        logger.warning(f"⚠️ Row {i+1}: Missing data")
-            
-            logger.info(f"✅ Loaded {len(questions)} questions from {os.path.basename(file_path)}")
-            return questions
-            
-        except Exception as e:
-            logger.error(f"❌ Error loading questions from {subtopic}: {e}")
+        """Load questions from CSV file - subtopic is the numbered filename"""
+        structure = NAVIGATION_STRUCTURE
+        
+        # Check if this path exists in navigation structure
+        if (year not in structure or 
+            "terms" not in structure[year] or
+            term not in structure[year]["terms"] or
+            "blocks" not in structure[year]["terms"][term] or
+            block not in structure[year]["terms"][term]["blocks"] or
+            "subjects" not in structure[year]["terms"][term]["blocks"][block] or
+            subject not in structure[year]["terms"][term]["blocks"][block]["subjects"] or
+            "categories" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject] or
+            category not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"] or
+            "subtopics" not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category] or
+            subtopic not in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]):
+            logger.error(f"❌ Path not in navigation structure: {year}/{term}/{block}/{subject}/{category}/{subtopic}")
             return []
+        
+        # Construct file path - subtopic is already the filename
+        file_path = os.path.join(CONFIG["data_dir"], year, term, block, subject, category, subtopic)
+        
+        logger.info(f"📁 Loading questions from: {file_path}")
+        
+        if not os.path.exists(file_path):
+            logger.error(f"❌ Question file not found: {file_path}")
+            return []
+        
+        questions = []
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                row_count = 0
+                valid_questions = 0
+                
+                for i, row in enumerate(reader, 1):
+                    row_count += 1
+                    
+                    # Skip empty rows, comments, and rows with insufficient data
+                    if not row or not any(row) or row[0].startswith('#') or len(row) < 6:
+                        continue
+                    
+                    # Clean and validate data
+                    cleaned_row = [x.strip() for x in row[:6] if x.strip()]
+                    if len(cleaned_row) < 6:
+                        continue
+                    
+                    question, opt_a, opt_b, opt_c, opt_d, correct = cleaned_row
+                    correct = correct.upper()
+                    
+                    # Validate correct answer format
+                    if correct not in ['A', 'B', 'C', 'D']:
+                        logger.warning(f"⚠️ Invalid correct answer in row {i}: '{correct}'")
+                        continue
+                    
+                    # Sanitize all text
+                    question = sanitize_text(question)
+                    opt_a = sanitize_text(opt_a)
+                    opt_b = sanitize_text(opt_b)
+                    opt_c = sanitize_text(opt_c)
+                    opt_d = sanitize_text(opt_d)
+                    
+                    questions.append({
+                        "question": question,
+                        "options": [opt_a, opt_b, opt_c, opt_d],
+                        "correct": correct,
+                        "correct_index": ord(correct) - ord('A')
+                    })
+                    valid_questions += 1
+            
+            logger.info(f"✅ Loaded {valid_questions} valid questions from {row_count} rows")
+            
+            if valid_questions == 0:
+                logger.warning(f"⚠️ No valid questions found in {file_path}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error loading questions from {file_path}: {e}")
+        
+        return questions
