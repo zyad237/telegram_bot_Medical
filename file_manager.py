@@ -1,6 +1,5 @@
-# [file name]: file_manager.py
 """
-File management for quiz data with 6-level navigation
+Universal file management for quiz data - finds CSV files regardless of directory structure
 """
 import os
 import csv
@@ -12,6 +11,73 @@ logger = logging.getLogger(__name__)
 
 class FileManager:
     
+    # Cache for found CSV files to avoid repeated scanning
+    _csv_cache = None
+    
+    @staticmethod
+    def _scan_all_csv_files() -> Dict[str, str]:
+        """Scan entire data directory and build a mapping of filenames to full paths"""
+        if FileManager._csv_cache is not None:
+            return FileManager._csv_cache
+            
+        csv_cache = {}
+        data_dir = CONFIG["data_dir"]
+        
+        if not os.path.exists(data_dir):
+            logger.error(f"❌ Data directory not found: {data_dir}")
+            return {}
+        
+        logger.info("🔍 Scanning for CSV files...")
+        for root, dirs, files in os.walk(data_dir):
+            for file in files:
+                if file.endswith('.csv'):
+                    full_path = os.path.join(root, file)
+                    # Store both with and without spaces for flexible lookup
+                    csv_cache[file] = full_path
+                    csv_cache[file.replace(' ', '')] = full_path
+                    csv_cache[file.replace(' ', '_')] = full_path
+                    
+                    # Also store with just the number part for callback matching
+                    base_name = os.path.splitext(file)[0]
+                    if '_' in base_name:
+                        number_part = base_name.split('_')[0]
+                        csv_cache[number_part + '.csv'] = full_path
+        
+        logger.info(f"✅ Found {len([k for k in csv_cache.keys() if not k.endswith(('.csv', '_csv'))])} unique CSV files")
+        FileManager._csv_cache = csv_cache
+        return csv_cache
+    
+    @staticmethod
+    def _find_csv_file_anywhere(filename: str) -> Optional[str]:
+        """Find CSV file anywhere in the data directory"""
+        cache = FileManager._scan_all_csv_files()
+        
+        # Try exact match first
+        if filename in cache:
+            return cache[filename]
+        
+        # Try without spaces
+        filename_no_spaces = filename.replace(' ', '')
+        if filename_no_spaces in cache:
+            return cache[filename_no_spaces]
+        
+        # Try with underscores
+        filename_underscores = filename.replace(' ', '_')
+        if filename_underscores in cache:
+            return cache[filename_underscores]
+        
+        # Try to match by number
+        base_name = os.path.splitext(filename)[0]
+        number_part = base_name.split('_')[0] if '_' in base_name else base_name
+        
+        for cached_file, full_path in cache.items():
+            if cached_file.startswith(number_part + '_') or cached_file.startswith(number_part + ' '):
+                return full_path
+        
+        logger.error(f"❌ CSV file not found anywhere: {filename}")
+        logger.info(f"📁 Available files: {list(set([k for k in cache.keys() if k.endswith('.csv')]))}")
+        return None
+
     @staticmethod
     def get_navigation_path(year: str, term: str = None, block: str = None, 
                            subject: str = None, category: str = None) -> Optional[Dict]:
@@ -77,7 +143,9 @@ class FileManager:
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
         """List available subtopics for a category"""
         path = FileManager.get_navigation_path(year, term, block, subject, category)
-        return list(path["subtopics"].keys()) if path and "subtopics" in path else []
+        if path and "subtopics" in path:
+            return list(path["subtopics"].keys())
+        return []
     
     @staticmethod
     def get_year_display_name(year: str) -> str:
@@ -118,72 +186,14 @@ class FileManager:
         return subtopic
     
     @staticmethod
-    def _find_csv_file(base_path: str, filename: str) -> Optional[str]:
-        """Find CSV file with flexible searching"""
-        # Try exact path first
-        exact_path = os.path.join(base_path, filename)
-        if os.path.exists(exact_path):
-            return exact_path
-        
-        # Try without spaces
-        filename_no_spaces = filename.replace(' ', '')
-        no_spaces_path = os.path.join(base_path, filename_no_spaces)
-        if os.path.exists(no_spaces_path):
-            return no_spaces_path
-        
-        # Try with underscores
-        filename_underscores = filename.replace(' ', '_')
-        underscores_path = os.path.join(base_path, filename_underscores)
-        if os.path.exists(underscores_path):
-            return underscores_path
-        
-        # Try to find any CSV file that starts with the same number
-        base_name = os.path.splitext(filename)[0]
-        number_part = base_name.split('_')[0] if '_' in base_name else base_name
-        
-        try:
-            for file in os.listdir(base_path):
-                if file.endswith('.csv'):
-                    file_base = os.path.splitext(file)[0]
-                    file_number = file_base.split('_')[0] if '_' in file_base else file_base
-                    
-                    # Check if numbers match (with or without leading zeros)
-                    if (file_number == number_part or 
-                        file_number.lstrip('0') == number_part.lstrip('0')):
-                        return os.path.join(base_path, file)
-        except OSError:
-            pass
-        
-        return None
-    
-    @staticmethod
     def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
-        """Load questions from CSV file"""
+        """Load questions from CSV file - uses universal file finder"""
         try:
-            # Construct base directory path
-            base_dir = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
-            
-            if not os.path.exists(base_dir):
-                logger.error(f"❌ Directory not found: {base_dir}")
-                # Try alternative directory structure
-                alt_dir = os.path.join(CONFIG["data_dir"], year, subject, category)
-                if os.path.exists(alt_dir):
-                    base_dir = alt_dir
-                    logger.info(f"✅ Using alternative directory: {alt_dir}")
-                else:
-                    return []
-            
-            # Find the actual CSV file
-            csv_path = FileManager._find_csv_file(base_dir, subtopic)
+            # Find the CSV file anywhere in the data directory
+            csv_path = FileManager._find_csv_file_anywhere(subtopic)
             
             if not csv_path:
-                logger.error(f"❌ CSV file not found: {subtopic} in {base_dir}")
-                # List available files for debugging
-                try:
-                    available_files = [f for f in os.listdir(base_dir) if f.endswith('.csv')]
-                    logger.info(f"📁 Available CSV files in {base_dir}: {available_files}")
-                except OSError:
-                    pass
+                logger.error(f"❌ CSV file not found: {subtopic}")
                 return []
             
             logger.info(f"📖 Loading questions from: {csv_path}")
@@ -200,8 +210,11 @@ class FileManager:
                     with open(csv_path, 'r', encoding='latin-1') as file2:
                         reader = csv.DictReader(file2)
                         rows = list(reader)
+                except Exception as e:
+                    logger.error(f"❌ Error reading CSV: {e}")
+                    return []
                 
-                for row in rows:
+                for i, row in enumerate(rows):
                     # Try multiple column name formats to be more flexible
                     question_text = None
                     options = []
@@ -242,10 +255,13 @@ class FileManager:
                                 row[columns[4]].strip()
                             ]
                             correct_answer = row[columns[5]].strip().upper()
+                        else:
+                            logger.warning(f"⚠️ Row {i+1}: Not enough columns (need 6, got {len(columns)})")
+                            continue
                     
                     # Validate and process the question
                     if question_text and len(options) == 4 and correct_answer:
-                        # Remove empty options
+                        # Remove empty options and check we still have 4
                         options = [opt for opt in options if opt]
                         
                         if len(options) == 4:
@@ -260,16 +276,13 @@ class FileManager:
                                 }
                                 questions.append(question)
                             else:
-                                logger.warning(f"⚠️ Invalid correct answer '{correct_answer}' in question: {question_text[:50]}...")
+                                logger.warning(f"⚠️ Row {i+1}: Invalid correct answer '{correct_answer}' - must be A, B, C, or D")
                         else:
-                            logger.warning(f"⚠️ Not enough options in question: {question_text[:50]}...")
+                            logger.warning(f"⚠️ Row {i+1}: Not enough valid options (need 4, got {len(options)})")
                     else:
-                        if question_text:
-                            logger.warning(f"⚠️ Skipping invalid row: {question_text[:50]}...")
-                        else:
-                            logger.warning(f"⚠️ Skipping empty row")
+                        logger.warning(f"⚠️ Row {i+1}: Missing question text, options, or correct answer")
             
-            logger.info(f"✅ Loaded {len(questions)} questions from {csv_path}")
+            logger.info(f"✅ Loaded {len(questions)} valid questions from {os.path.basename(csv_path)}")
             return questions
             
         except Exception as e:
