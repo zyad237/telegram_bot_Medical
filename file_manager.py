@@ -118,23 +118,90 @@ class FileManager:
         return subtopic
     
     @staticmethod
+    def _find_csv_file(base_path: str, filename: str) -> Optional[str]:
+        """Find CSV file with flexible searching"""
+        # Try exact path first
+        exact_path = os.path.join(base_path, filename)
+        if os.path.exists(exact_path):
+            return exact_path
+        
+        # Try without spaces
+        filename_no_spaces = filename.replace(' ', '')
+        no_spaces_path = os.path.join(base_path, filename_no_spaces)
+        if os.path.exists(no_spaces_path):
+            return no_spaces_path
+        
+        # Try with underscores
+        filename_underscores = filename.replace(' ', '_')
+        underscores_path = os.path.join(base_path, filename_underscores)
+        if os.path.exists(underscores_path):
+            return underscores_path
+        
+        # Try to find any CSV file that starts with the same number
+        base_name = os.path.splitext(filename)[0]
+        number_part = base_name.split('_')[0] if '_' in base_name else base_name
+        
+        try:
+            for file in os.listdir(base_path):
+                if file.endswith('.csv'):
+                    file_base = os.path.splitext(file)[0]
+                    file_number = file_base.split('_')[0] if '_' in file_base else file_base
+                    
+                    # Check if numbers match (with or without leading zeros)
+                    if (file_number == number_part or 
+                        file_number.lstrip('0') == number_part.lstrip('0')):
+                        return os.path.join(base_path, file)
+        except OSError:
+            pass
+        
+        return None
+    
+    @staticmethod
     def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
         """Load questions from CSV file"""
         try:
-            # Construct file path
-            file_path = os.path.join(
-                CONFIG["data_dir"], year, term, block, subject, category, subtopic
-            )
+            # Construct base directory path
+            base_dir = os.path.join(CONFIG["data_dir"], year, term, block, subject, category)
             
-            if not os.path.exists(file_path):
-                logger.error(f"❌ File not found: {file_path}")
+            if not os.path.exists(base_dir):
+                logger.error(f"❌ Directory not found: {base_dir}")
+                # Try alternative directory structure
+                alt_dir = os.path.join(CONFIG["data_dir"], year, subject, category)
+                if os.path.exists(alt_dir):
+                    base_dir = alt_dir
+                    logger.info(f"✅ Using alternative directory: {alt_dir}")
+                else:
+                    return []
+            
+            # Find the actual CSV file
+            csv_path = FileManager._find_csv_file(base_dir, subtopic)
+            
+            if not csv_path:
+                logger.error(f"❌ CSV file not found: {subtopic} in {base_dir}")
+                # List available files for debugging
+                try:
+                    available_files = [f for f in os.listdir(base_dir) if f.endswith('.csv')]
+                    logger.info(f"📁 Available CSV files in {base_dir}: {available_files}")
+                except OSError:
+                    pass
                 return []
             
+            logger.info(f"📖 Loading questions from: {csv_path}")
+            
             questions = []
-            with open(file_path, 'r', encoding='utf-8') as file:
-                reader = csv.DictReader(file)
+            with open(csv_path, 'r', encoding='utf-8') as file:
+                # Try different encodings if utf-8 fails
+                try:
+                    file.seek(0)
+                    reader = csv.DictReader(file)
+                    rows = list(reader)
+                except UnicodeDecodeError:
+                    logger.warning("⚠️ UTF-8 failed, trying latin-1")
+                    with open(csv_path, 'r', encoding='latin-1') as file2:
+                        reader = csv.DictReader(file2)
+                        rows = list(reader)
                 
-                for row in reader:
+                for row in rows:
                     # Try multiple column name formats to be more flexible
                     question_text = None
                     options = []
@@ -142,14 +209,24 @@ class FileManager:
                     
                     # Method 1: Check for your format (Question, Option1, Option2, Option3, Option4, Correct Answer)
                     if 'Question' in row and 'Option1' in row and 'Option2' in row and 'Option3' in row and 'Option4' in row and 'Correct Answer' in row:
-                        question_text = row['Question']
-                        options = [row['Option1'], row['Option2'], row['Option3'], row['Option4']]
+                        question_text = row['Question'].strip()
+                        options = [
+                            row['Option1'].strip(),
+                            row['Option2'].strip(), 
+                            row['Option3'].strip(),
+                            row['Option4'].strip()
+                        ]
                         correct_answer = row['Correct Answer'].strip().upper()
                     
                     # Method 2: Check for the original expected format
                     elif 'question' in row and 'option_a' in row and 'option_b' in row and 'option_c' in row and 'option_d' in row and 'correct' in row:
-                        question_text = row['question']
-                        options = [row['option_a'], row['option_b'], row['option_c'], row['option_d']]
+                        question_text = row['question'].strip()
+                        options = [
+                            row['option_a'].strip(),
+                            row['option_b'].strip(),
+                            row['option_c'].strip(),
+                            row['option_d'].strip()
+                        ]
                         correct_answer = row['correct'].strip().upper()
                     
                     # Method 3: Try to auto-detect columns (fallback)
@@ -157,28 +234,42 @@ class FileManager:
                         # Get all column names
                         columns = list(row.keys())
                         if len(columns) >= 6:  # At least Question + 4 options + correct answer
-                            question_text = row[columns[0]]
-                            options = [row[columns[1]], row[columns[2]], row[columns[3]], row[columns[4]]]
+                            question_text = row[columns[0]].strip()
+                            options = [
+                                row[columns[1]].strip(),
+                                row[columns[2]].strip(),
+                                row[columns[3]].strip(),
+                                row[columns[4]].strip()
+                            ]
                             correct_answer = row[columns[5]].strip().upper()
                     
                     # Validate and process the question
                     if question_text and len(options) == 4 and correct_answer:
-                        # Map correct answer to index (A=0, B=1, C=2, D=3)
-                        correct_index_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+                        # Remove empty options
+                        options = [opt for opt in options if opt]
                         
-                        if correct_answer in correct_index_map:
-                            question = {
-                                "question": question_text,
-                                "options": options,
-                                "correct_index": correct_index_map[correct_answer]
-                            }
-                            questions.append(question)
+                        if len(options) == 4:
+                            # Map correct answer to index (A=0, B=1, C=2, D=3)
+                            correct_index_map = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
+                            
+                            if correct_answer in correct_index_map:
+                                question = {
+                                    "question": question_text,
+                                    "options": options,
+                                    "correct_index": correct_index_map[correct_answer]
+                                }
+                                questions.append(question)
+                            else:
+                                logger.warning(f"⚠️ Invalid correct answer '{correct_answer}' in question: {question_text[:50]}...")
                         else:
-                            logger.warning(f"⚠️ Invalid correct answer '{correct_answer}' in question: {question_text[:50]}...")
+                            logger.warning(f"⚠️ Not enough options in question: {question_text[:50]}...")
                     else:
-                        logger.warning(f"⚠️ Skipping invalid row in {subtopic}: {row}")
+                        if question_text:
+                            logger.warning(f"⚠️ Skipping invalid row: {question_text[:50]}...")
+                        else:
+                            logger.warning(f"⚠️ Skipping empty row")
             
-            logger.info(f"✅ Loaded {len(questions)} questions from {file_path}")
+            logger.info(f"✅ Loaded {len(questions)} questions from {csv_path}")
             return questions
             
         except Exception as e:
