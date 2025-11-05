@@ -182,7 +182,7 @@ class FileManager:
             return structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["display_name"]
         return category.title()
     
-    @staticmethod
+        @staticmethod
     @lru_cache(maxsize=1024)
     def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
         """Get list of available subtopics for a category - using numbered filenames"""
@@ -216,11 +216,21 @@ class FileManager:
         expected_subtopics = list(structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"].keys())
         print(f"   📋 Expected subtopics from config: {expected_subtopics}")
         
-        # Only return files that exist AND are in config
+        # CASE-INSENSITIVE MATCHING: Create lowercase versions for comparison
+        all_csv_files_lower = [f.lower() for f in all_csv_files]
+        expected_subtopics_lower = [f.lower() for f in expected_subtopics]
+        
+        # Find matches (case-insensitive)
         subtopics = []
-        for file in all_csv_files:
-            if file in structure[year]["terms"][term]["blocks"][block]["subjects"][subject]["categories"][category]["subtopics"]:
-                subtopics.append(file)
+        for expected_file in expected_subtopics:
+            if expected_file.lower() in all_csv_files_lower:
+                # Find the actual filename with correct case
+                actual_file_index = all_csv_files_lower.index(expected_file.lower())
+                actual_file = all_csv_files[actual_file_index]
+                subtopics.append(actual_file)
+                print(f"   ✅ Matched: {expected_file} → {actual_file}")
+            else:
+                print(f"   ❌ No match for: {expected_file}")
         
         # Sort by the numeric prefix to maintain order
         sorted_subtopics = sorted(subtopics, key=lambda x: (
@@ -228,7 +238,7 @@ class FileManager:
             x
         ))
         
-        print(f"   ✅ Final subtopics returned: {sorted_subtopics}")
+        print(f"   🎯 Final subtopics returned: {sorted_subtopics}")
         print()
         
         return sorted_subtopics

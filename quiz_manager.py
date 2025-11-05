@@ -44,7 +44,7 @@ class QuizManager:
         return shuffled_question
 
     def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
-        """Convert subtopic number back to actual filename"""
+        """Convert subtopic number back to actual filename with case-insensitive matching"""
         subtopics = FileManager.list_subtopics(year, term, block, subject, category)
         print(f"🔍 Looking for subtopic '{subtopic_number}' in category '{category}'")
         print(f"   Available files: {subtopics}")
@@ -54,10 +54,20 @@ class QuizManager:
             print(f"✅ Exact match found: {subtopic_number}")
             return subtopic_number
         
+        # CASE-INSENSITIVE MATCHING
+        subtopics_lower = [f.lower() for f in subtopics]
+        subtopic_number_lower = subtopic_number.lower()
+        
+        if subtopic_number_lower in subtopics_lower:
+            actual_index = subtopics_lower.index(subtopic_number_lower)
+            actual_file = subtopics[actual_index]
+            print(f"✅ Case-insensitive match found: {subtopic_number} → {actual_file}")
+            return actual_file
+        
         # Look for files starting with the number
         for filename in subtopics:
             # Check if filename starts with number_ pattern
-            if filename.startswith(f"{subtopic_number}_"):
+            if filename.lower().startswith(f"{subtopic_number}_".lower()):
                 print(f"✅ Found matching file: {filename}")
                 return filename
             
