@@ -1,357 +1,158 @@
+# [file name]: file_manager.py
+[file content begin]
 """
-Bot command and callback handlers for 6-level navigation
+File management for quiz data with 6-level navigation
 """
+import os
+import csv
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, CallbackQueryHandler, CommandHandler, PollAnswerHandler
-from telegram.error import BadRequest
-
-from file_manager import FileManager
-from callback_manager import CallbackManager
-from quiz_manager import QuizManager
-from database import DatabaseManager
+from typing import List, Dict, Optional
+from config import CONFIG, NAVIGATION_STRUCTURE
 
 logger = logging.getLogger(__name__)
 
-class BotHandlers:
-    def __init__(self, database: DatabaseManager, quiz_manager: QuizManager):
-        self.db = database
-        self.quiz_manager = quiz_manager
+class FileManager:
     
-    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /start command - show years"""
-        user = update.effective_user
-        self.db.update_user(user.id, user.username, user.first_name, user.last_name)
-        
-        context.user_data.clear()
-        years = FileManager.list_years()
-        
-        if not years:
-            await update.message.reply_text("📝 No academic years available.")
-            return
-        
-        keyboard = []
-        for year in years:
-            callback_data = CallbackManager.create_year_callback(year)
-            display_name = FileManager.get_year_display_name(year)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        await update.message.reply_text(
-            "🎓 Medical Quiz Bot\n\nSelect your academic year:",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
-    
-    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /help command"""
-        help_text = (
-            "🤖 Medical Quiz Bot Help\n\n"
-            "📚 Available Commands:\n"
-            "• /start - Start the bot and select quiz\n"
-            "• /stats - View your quiz statistics\n"
-            "• /cancel - Cancel current quiz\n"
-            "• /help - Show this help message\n\n"
-            "🎯 How to Use:\n"
-            "1. Use /start to begin\n"
-            "2. Navigate: Year → Term → Block → Subject → Category → Quiz\n"
-            "3. Answer questions at your own pace\n"
-            "4. View your results at the end\n\n"
-            "📖 Navigation:\n"
-            "• Years: Academic years (Year 1, Year 2, etc.)\n"
-            "• Terms: Semester terms\n"
-            "• Blocks: Curriculum blocks\n"
-            "• Subjects: Anatomy, Histology, etc.\n"
-            "• Categories: General, Midterm, Final, Formative\n"
-            "• Quizzes: Individual topic quizzes"
-        )
-        
-        await update.message.reply_text(help_text)
-    
-    async def stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /stats command"""
-        user = update.effective_user
-        stats = self.db.get_user_stats(user.id)
-        
-        if stats['total_quizzes'] == 0:
-            await update.message.reply_text("📊 You haven't completed any quizzes yet!\nUse /start to begin your first quiz.")
-            return
-        
-        stats_text = (
-            f"📊 Your Quiz Statistics\n\n"
-            f"• Total Quizzes Completed: {stats['total_quizzes']}\n"
-            f"• Average Score: {stats['average_score']}%\n\n"
-            f"Keep up the great work! 🎯"
-        )
-        
-        await update.message.reply_text(stats_text)
-    
-    async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /cancel command"""
-        user_data = context.user_data
-        
-        if user_data.get("quiz_active"):
-            try:
-                if user_data.get("active_poll_id"):
-                    await context.bot.stop_poll(
-                        chat_id=user_data["chat_id"],
-                        message_id=user_data.get("poll_message_id")
-                    )
-            except Exception as e:
-                logger.warning(f"⚠️ Could not stop poll during cancel: {e}")
-            
-            user_data.clear()
-            await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
-        else:
-            await update.message.reply_text("ℹ️ No active quiz to cancel.")
-
-    async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle all callback queries"""
-        query = update.callback_query
-        
+    @staticmethod
+    def get_navigation_path(year: str, term: str = None, block: str = None, 
+                           subject: str = None, category: str = None) -> Optional[Dict]:
+        """Get navigation path from structure"""
         try:
-            await query.answer()
-        except BadRequest:
-            pass
-        
-        callback_data = query.data
-        
-        try:
-            parsed = CallbackManager.parse_callback_data(callback_data)
-            if not parsed:
-                await query.edit_message_text("❌ Invalid selection.")
-                return
+            path = NAVIGATION_STRUCTURE.get(year)
+            if not path:
+                return None
             
-            if parsed["type"] == "main_menu":
-                await self.handle_main_menu(update, context)
-            elif parsed["type"] == "year":
-                await self.handle_year_selection(update, context, parsed["year"])
-            elif parsed["type"] == "term":
-                await self.handle_term_selection(update, context, parsed["year"], parsed["term"])
-            elif parsed["type"] == "block":
-                await self.handle_block_selection(update, context, parsed["year"], parsed["term"], parsed["block"])
-            elif parsed["type"] == "subject":
-                await self.handle_subject_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"])
-            elif parsed["type"] == "category":
-                await self.handle_category_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"], parsed["category"])
-            elif parsed["type"] == "subtopic":
-                await self.handle_subtopic_selection(update, context, parsed["year"], parsed["term"], parsed["block"], parsed["subject"], parsed["category"], parsed["subtopic"])
+            if term:
+                path = path["terms"].get(term)
+                if not path:
+                    return None
+                
+            if block:
+                path = path["blocks"].get(block)
+                if not path:
+                    return None
                     
+            if subject:
+                path = path["subjects"].get(subject)
+                if not path:
+                    return None
+                    
+            if category:
+                path = path["categories"].get(category)
+                
+            return path
+            
+        except (KeyError, TypeError):
+            return None
+    
+    @staticmethod
+    def list_years() -> List[str]:
+        """List available years"""
+        return list(NAVIGATION_STRUCTURE.keys())
+    
+    @staticmethod
+    def list_terms(year: str) -> List[str]:
+        """List available terms for a year"""
+        path = FileManager.get_navigation_path(year)
+        return list(path["terms"].keys()) if path and "terms" in path else []
+    
+    @staticmethod
+    def list_blocks(year: str, term: str) -> List[str]:
+        """List available blocks for a term"""
+        path = FileManager.get_navigation_path(year, term)
+        return list(path["blocks"].keys()) if path and "blocks" in path else []
+    
+    @staticmethod
+    def list_subjects(year: str, term: str, block: str) -> List[str]:
+        """List available subjects for a block"""
+        path = FileManager.get_navigation_path(year, term, block)
+        return list(path["subjects"].keys()) if path and "subjects" in path else []
+    
+    @staticmethod
+    def list_categories(year: str, term: str, block: str, subject: str) -> List[str]:
+        """List available categories for a subject"""
+        path = FileManager.get_navigation_path(year, term, block, subject)
+        return list(path["categories"].keys()) if path and "categories" in path else []
+    
+    @staticmethod
+    def list_subtopics(year: str, term: str, block: str, subject: str, category: str) -> List[str]:
+        """List available subtopics for a category"""
+        path = FileManager.get_navigation_path(year, term, block, subject, category)
+        return list(path["subtopics"].keys()) if path and "subtopics" in path else []
+    
+    @staticmethod
+    def get_year_display_name(year: str) -> str:
+        """Get display name for year"""
+        path = FileManager.get_navigation_path(year)
+        return path["display_name"] if path and "display_name" in path else year
+    
+    @staticmethod
+    def get_term_display_name(year: str, term: str) -> str:
+        """Get display name for term"""
+        path = FileManager.get_navigation_path(year, term)
+        return path["display_name"] if path and "display_name" in path else term
+    
+    @staticmethod
+    def get_block_display_name(year: str, term: str, block: str) -> str:
+        """Get display name for block"""
+        path = FileManager.get_navigation_path(year, term, block)
+        return path["display_name"] if path and "display_name" in path else block
+    
+    @staticmethod
+    def get_subject_display_name(year: str, term: str, block: str, subject: str) -> str:
+        """Get display name for subject"""
+        path = FileManager.get_navigation_path(year, term, block, subject)
+        return path["display_name"] if path and "display_name" in path else subject
+    
+    @staticmethod
+    def get_category_display_name(year: str, term: str, block: str, subject: str, category: str) -> str:
+        """Get display name for category"""
+        path = FileManager.get_navigation_path(year, term, block, subject, category)
+        return path["display_name"] if path and "display_name" in path else category
+    
+    @staticmethod
+    def get_subtopic_display_name(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
+        """Get display name for subtopic"""
+        path = FileManager.get_navigation_path(year, term, block, subject, category)
+        if path and "subtopics" in path and subtopic in path["subtopics"]:
+            return path["subtopics"][subtopic]
+        return subtopic
+    
+    @staticmethod
+    def load_questions(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> List[Dict]:
+        """Load questions from CSV file"""
+        try:
+            # Construct file path
+            file_path = os.path.join(
+                CONFIG["data_dir"], year, term, block, subject, category, subtopic
+            )
+            
+            if not os.path.exists(file_path):
+                logger.error(f"❌ File not found: {file_path}")
+                return []
+            
+            questions = []
+            with open(file_path, 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                
+                for row in reader:
+                    if all(key in row for key in ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct']):
+                        question = {
+                            "question": row['question'],
+                            "options": [
+                                row['option_a'],
+                                row['option_b'], 
+                                row['option_c'],
+                                row['option_d']
+                            ],
+                            "correct_index": ['a', 'b', 'c', 'd'].index(row['correct'].lower())
+                        }
+                        questions.append(question)
+            
+            logger.info(f"✅ Loaded {len(questions)} questions from {file_path}")
+            return questions
+            
         except Exception as e:
-            logger.error(f"❌ Error handling callback: {e}")
-            await query.edit_message_text("❌ An error occurred.")
-
-    async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle return to main menu - show years"""
-        query = update.callback_query
-        years = FileManager.list_years()
-        
-        if not years:
-            await query.edit_message_text("❌ No academic years available.")
-            return
-        
-        keyboard = []
-        for year in years:
-            callback_data = CallbackManager.create_year_callback(year)
-            display_name = FileManager.get_year_display_name(year)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        try:
-            await query.edit_message_text(
-                "🎓 Select your academic year:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_year_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str):
-        """Handle year selection - show terms"""
-        query = update.callback_query
-        
-        terms = FileManager.list_terms(year)
-        
-        if not terms:
-            await query.edit_message_text(f"❌ No terms available for {FileManager.get_year_display_name(year)}")
-            return
-        
-        keyboard = []
-        for term in terms:
-            callback_data = CallbackManager.create_term_callback(year, term)
-            display_name = FileManager.get_term_display_name(year, term)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        keyboard.append([InlineKeyboardButton("« Back to Years", callback_data="main_menu")])
-        
-        try:
-            year_display = FileManager.get_year_display_name(year)
-            await query.edit_message_text(
-                f"{year_display}\nSelect term:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_term_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str):
-        """Handle term selection - show blocks"""
-        query = update.callback_query
-        
-        blocks = FileManager.list_blocks(year, term)
-        
-        if not blocks:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            await query.edit_message_text(f"❌ No blocks available for {year_display} - {term_display}")
-            return
-        
-        keyboard = []
-        for block in blocks:
-            callback_data = CallbackManager.create_block_callback(year, term, block)
-            display_name = FileManager.get_block_display_name(year, term, block)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        keyboard.append([InlineKeyboardButton("« Back to Terms", 
-                        callback_data=CallbackManager.create_year_callback(year))])
-        
-        try:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            await query.edit_message_text(
-                f"{year_display} - {term_display}\nSelect block:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_block_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str):
-        """Handle block selection - show subjects"""
-        query = update.callback_query
-        
-        subjects = FileManager.list_subjects(year, term, block)
-        
-        if not subjects:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            await query.edit_message_text(f"❌ No subjects available for {year_display} - {term_display} - {block_display}")
-            return
-        
-        keyboard = []
-        for subject in subjects:
-            callback_data = CallbackManager.create_subject_callback(year, term, block, subject)
-            display_name = FileManager.get_subject_display_name(year, term, block, subject)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        keyboard.append([InlineKeyboardButton("« Back to Blocks", 
-                        callback_data=CallbackManager.create_term_callback(year, term))])
-        
-        try:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            await query.edit_message_text(
-                f"{year_display} - {term_display} - {block_display}\nSelect subject:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_subject_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str):
-        """Handle subject selection - show categories"""
-        query = update.callback_query
-        
-        categories = FileManager.list_categories(year, term, block, subject)
-        
-        if not categories:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
-            
-            error_msg = (
-                f"❌ No categories available for:\n"
-                f"📅 {year_display} - {term_display} - {block_display}\n"
-                f"📚 {subject_display}\n\n"
-                f"💡 Check if category directories exist in the data folder."
-            )
-            await query.edit_message_text(error_msg)
-            return
-        
-        keyboard = []
-        for category in categories:
-            callback_data = CallbackManager.create_category_callback(year, term, block, subject, category)
-            display_name = FileManager.get_category_display_name(year, term, block, subject, category)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        keyboard.append([InlineKeyboardButton("« Back to Subjects", 
-                        callback_data=CallbackManager.create_block_callback(year, term, block))])
-        
-        try:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
-            await query.edit_message_text(
-                f"{year_display} - {term_display} - {block_display} - {subject_display}\nSelect category:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_category_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str, category: str):
-        """Handle category selection - show subtopics"""
-        query = update.callback_query
-        
-        subtopics = FileManager.list_subtopics(year, term, block, subject, category)
-        
-        if not subtopics:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
-            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
-            
-            error_msg = (
-                f"❌ No quizzes available for:\n"
-                f"📅 {year_display} - {term_display} - {block_display}\n"
-                f"📚 {subject_display} - {category_display}\n\n"
-                f"💡 Check if CSV files exist in the category directory."
-            )
-            await query.edit_message_text(error_msg)
-            return
-        
-        keyboard = []
-        for subtopic in subtopics:
-            callback_data = CallbackManager.create_subtopic_callback(year, term, block, subject, category, subtopic)
-            display_name = FileManager.get_subtopic_display_name(year, term, block, subject, category, subtopic)
-            keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
-        
-        keyboard.append([InlineKeyboardButton("« Back to Categories", 
-                        callback_data=CallbackManager.create_subject_callback(year, term, block, subject))])
-        
-        try:
-            year_display = FileManager.get_year_display_name(year)
-            term_display = FileManager.get_term_display_name(year, term)
-            block_display = FileManager.get_block_display_name(year, term, block)
-            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
-            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
-            await query.edit_message_text(
-                f"{year_display} - {term_display} - {block_display} - {subject_display} - {category_display}\nSelect quiz:",
-                reply_markup=InlineKeyboardMarkup(keyboard)
-            )
-        except BadRequest:
-            pass
-    
-    async def handle_subtopic_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str, term: str, block: str, subject: str, category: str, subtopic: str):
-        """Handle subtopic selection and start quiz"""
-        await self.quiz_manager.start_quiz(update, context, year, term, block, subject, category, subtopic)
-    
-    async def handle_poll_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle poll answers"""
-        await self.quiz_manager.handle_poll_answer(update, context)
-    
-    def register_handlers(self, application):
-        """Register all handlers with the application"""
-        application.add_handler(CommandHandler("start", self.start))
-        application.add_handler(CommandHandler("help", self.help_command))
-        application.add_handler(CommandHandler("stats", self.stats_command))
-        application.add_handler(CommandHandler("cancel", self.cancel_command))
-        application.add_handler(CallbackQueryHandler(self.handle_callback))
-        application.add_handler(PollAnswerHandler(self.handle_poll_answer))
+            logger.error(f"❌ Error loading questions from {subtopic}: {e}")
+            return []
+[file content end]
