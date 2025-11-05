@@ -1,117 +1,287 @@
 """
-Callback data management for 6-level navigation
+Quiz logic and management for 6-level navigation
 """
-import re
+import random
+import asyncio
 import logging
-from typing import Optional, Dict
+from typing import Dict, List
+from functools import lru_cache
+
+from telegram import Update
+from telegram.ext import CallbackContext
+
+from config import CONFIG
+from file_manager import FileManager
+from database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
-class CallbackManager:
-    MAX_CALLBACK_LENGTH = 64  # Reduced for safety
+class QuizManager:
+    def __init__(self, database: DatabaseManager):
+        self.db = database
     
     @staticmethod
-    def sanitize_callback_text(text: str) -> str:
-        """Sanitize text for safe callback data - more aggressive"""
-        # For numbered filenames, extract just the number for callback
-        if text.endswith('.csv') and '_' in text:
-            # For numbered files like "01_Introduction to Anatomy.csv"
-            # Use just the number part for callback data
-            number_part = text.split('_')[0]
-            if number_part.isdigit():
-                return number_part
+    def shuffle_choices(question_data: Dict) -> Dict:
+        """Shuffle answer choices while tracking correct answer"""
+        original_options = question_data["options"]
+        original_correct_index = question_data["correct_index"]
         
-        # For other text, remove spaces and special chars, keep it short
-        sanitized = text.replace(' ', '')
-        sanitized = re.sub(r'[^\w]', '', sanitized)
-        sanitized = sanitized.lower()
-        return sanitized[:20]  # Limit length
-    
-    @staticmethod
-    def create_year_callback(year: str) -> str:
-        """Create year callback data"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        return f"y:{safe_year}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def create_term_callback(year: str, term: str) -> str:
-        """Create term callback data"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        safe_term = CallbackManager.sanitize_callback_text(term)
-        return f"t:{safe_year}:{safe_term}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def create_block_callback(year: str, term: str, block: str) -> str:
-        """Create block callback data"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        safe_term = CallbackManager.sanitize_callback_text(term)
-        safe_block = CallbackManager.sanitize_callback_text(block)
-        return f"b:{safe_year}:{safe_term}:{safe_block}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def create_subject_callback(year: str, term: str, block: str, subject: str) -> str:
-        """Create subject callback data"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        safe_term = CallbackManager.sanitize_callback_text(term)
-        safe_block = CallbackManager.sanitize_callback_text(block)
-        safe_subject = CallbackManager.sanitize_callback_text(subject)
-        return f"s:{safe_year}:{safe_term}:{safe_block}:{safe_subject}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def create_category_callback(year: str, term: str, block: str, subject: str, category: str) -> str:
-        """Create category callback data"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        safe_term = CallbackManager.sanitize_callback_text(term)
-        safe_block = CallbackManager.sanitize_callback_text(block)
-        safe_subject = CallbackManager.sanitize_callback_text(subject)
-        safe_category = CallbackManager.sanitize_callback_text(category)
-        return f"c:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def create_subtopic_callback(year: str, term: str, block: str, subject: str, category: str, subtopic: str) -> str:
-        """Create subtopic callback data - use only number from filename"""
-        safe_year = CallbackManager.sanitize_callback_text(year)
-        safe_term = CallbackManager.sanitize_callback_text(term)
-        safe_block = CallbackManager.sanitize_callback_text(block)
-        safe_subject = CallbackManager.sanitize_callback_text(subject)
-        safe_category = CallbackManager.sanitize_callback_text(category)
-        safe_subtopic = CallbackManager.sanitize_callback_text(subtopic)
-        return f"q:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}:{safe_subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
-    
-    @staticmethod
-    def parse_callback_data(callback_data: str) -> Optional[Dict]:
-        """Parse callback data safely"""
+        indexed_options = list(enumerate(original_options))
+        random.shuffle(indexed_options)
+        
+        shuffled_options = []
+        new_correct_index = None
+        
+        for new_index, (original_index, option) in enumerate(indexed_options):
+            shuffled_options.append(option)
+            if original_index == original_correct_index:
+                new_correct_index = new_index
+        
+        shuffled_question = question_data.copy()
+        shuffled_question["options"] = shuffled_options
+        shuffled_question["correct_index"] = new_correct_index
+        shuffled_question["shuffled_correct_letter"] = ['A', 'B', 'C', 'D'][new_correct_index]
+        
+        return shuffled_question
+
+    def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
+        """Convert subtopic number back to actual filename"""
+        subtopics = FileManager.list_subtopics(year, term, block, subject, category)
+        
+        # If subtopic_number is already a full filename, return it
+        if subtopic_number in subtopics:
+            return subtopic_number
+        
+        # Look for exact match first
+        for filename in subtopics:
+            if filename == subtopic_number:
+                return filename
+        
+        # Look for files starting with the number
+        for filename in subtopics:
+            if filename.startswith(f"{subtopic_number}_"):
+                return filename
+            
+            # Check without leading zeros
+            file_number = filename.split('_')[0].lstrip('0')
+            input_number = subtopic_number.lstrip('0')
+            if file_number == input_number:
+                return filename
+        
+        # If no match found, return the original (might work if case matches)
+        return subtopic_number
+
+    async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str):
+        """Start a new quiz with 6-level navigation"""
+        query = update.callback_query
+        
+        # Convert number back to actual filename
+        actual_filename = self._get_subtopic_filename(year, term, block, subject, category, subtopic_number)
+        
+        questions = FileManager.load_questions(year, term, block, subject, category, actual_filename)
+        
+        if not questions:
+            year_display = FileManager.get_year_display_name(year)
+            term_display = FileManager.get_term_display_name(year, term)
+            block_display = FileManager.get_block_display_name(year, term, block)
+            subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+            category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+            subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, actual_filename)
+            
+            await query.edit_message_text(
+                f"❌ No valid questions found for:\n"
+                f"📅 {year_display} - {term_display} - {block_display}\n"
+                f"📚 {subject_display} - {category_display}\n"
+                f"🧩 {subtopic_display}\n\n"
+                f"File: {actual_filename}"
+            )
+            return False
+        
+        if len(questions) > CONFIG["max_questions_per_quiz"]:
+            questions = questions[:CONFIG["max_questions_per_quiz"]]
+        
+        context.user_data.update({
+            "quiz_active": True,
+            "questions": questions,
+            "current_question": 0,
+            "correct_answers": 0,
+            "year": year,
+            "term": term,
+            "block": block,
+            "subject": subject,
+            "category": category,
+            "subtopic": actual_filename,
+            "chat_id": query.message.chat_id,
+        })
+        
+        year_display = FileManager.get_year_display_name(year)
+        term_display = FileManager.get_term_display_name(year, term)
+        block_display = FileManager.get_block_display_name(year, term, block)
+        subject_display = FileManager.get_subject_display_name(year, term, block, subject)
+        category_display = FileManager.get_category_display_name(year, term, block, subject, category)
+        subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, actual_filename)
+        
+        await query.edit_message_text(
+            f"🎯 Starting Quiz!\n\n"
+            f"📅 {year_display} - {term_display} - {block_display}\n"
+            f"📚 {subject_display} - {category_display}\n"
+            f"🧩 {subtopic_display}\n\n"
+            f"• Total questions: {len(questions)}\n"
+            f"• Answer choices are shuffled\n"
+            f"• No time limits\n\n"
+            f"Good luck! 🍀"
+        )
+        
+        await asyncio.sleep(2)
+        await self.send_next_question(update, context)
+        return True
+
+    async def send_next_question(self, update: Update, context: CallbackContext):
+        """Send the next question in the quiz"""
+        user_data = context.user_data
+        
+        if not user_data.get("quiz_active"):
+            return
+        
+        current_index = user_data["current_question"]
+        questions = user_data["questions"]
+        chat_id = user_data["chat_id"]
+        
+        if current_index >= len(questions):
+            await self.finish_quiz(update, context)
+            return
+        
+        original_question = questions[current_index]
+        shuffled_question = self.shuffle_choices(original_question)
+        user_data["current_shuffled"] = shuffled_question
+        
+        progress = f"Question {current_index + 1}/{len(questions)}\n\n"
+        question_text = progress + shuffled_question["question"]
+        
         try:
-            if callback_data == "main_menu":
-                return {"type": "main_menu"}
-            elif callback_data.startswith("y:"):
-                # Year selection: y:year1
-                return {"type": "year", "year": callback_data[2:]}
-            elif callback_data.startswith("t:"):
-                # Term selection: t:year1:term1
-                parts = callback_data.split(":", 2)
-                if len(parts) >= 3:
-                    return {"type": "term", "year": parts[1], "term": parts[2]}
-            elif callback_data.startswith("b:"):
-                # Block selection: b:year1:term1:block1
-                parts = callback_data.split(":", 3)
-                if len(parts) >= 4:
-                    return {"type": "block", "year": parts[1], "term": parts[2], "block": parts[3]}
-            elif callback_data.startswith("s:"):
-                # Subject selection: s:year1:term1:block1:anatomy
-                parts = callback_data.split(":", 4)
-                if len(parts) >= 5:
-                    return {"type": "subject", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4]}
-            elif callback_data.startswith("c:"):
-                # Category selection: c:year1:term1:block1:anatomy:general
-                parts = callback_data.split(":", 5)
-                if len(parts) >= 6:
-                    return {"type": "category", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4], "category": parts[5]}
-            elif callback_data.startswith("q:"):
-                # Subtopic selection: q:year1:term1:block1:anatomy:general:01
-                parts = callback_data.split(":", 6)
-                if len(parts) >= 7:
-                    return {"type": "subtopic", "year": parts[1], "term": parts[2], "block": parts[3], "subject": parts[4], "category": parts[5], "subtopic": parts[6]}
+            message = await context.bot.send_poll(
+                chat_id=chat_id,
+                question=question_text,
+                options=shuffled_question["options"],
+                type="quiz",
+                correct_option_id=shuffled_question["correct_index"],
+                is_anonymous=False,
+            )
+            
+            user_data["active_poll_id"] = message.poll.id
+            user_data["poll_message_id"] = message.message_id
+            
         except Exception as e:
-            logger.error(f"Error parsing callback data: {e}")
-        return None
+            logger.error(f"❌ Error sending question {current_index + 1}: {e}")
+            user_data["current_question"] += 1
+            await asyncio.sleep(2)
+            await self.send_next_question(update, context)
+
+    async def handle_poll_answer(self, update: Update, context: CallbackContext):
+        """Handle poll answers"""
+        poll_answer = update.poll_answer
+        user_data = context.user_data
+        
+        # Check if this is our poll
+        if user_data.get("active_poll_id") != poll_answer.poll_id:
+            return
+        
+        if not user_data.get("quiz_active"):
+            return
+        
+        shuffled_question = user_data.get("current_shuffled")
+        if not shuffled_question:
+            return
+        
+        user_answer = poll_answer.option_ids[0] if poll_answer.option_ids else None
+        is_correct = user_answer == shuffled_question["correct_index"]
+        
+        if is_correct:
+            user_data["correct_answers"] += 1
+            feedback = "✅ Correct! Well done!"
+        else:
+            correct_letter = shuffled_question["shuffled_correct_letter"]
+            feedback = f"❌ Incorrect. The correct answer was {correct_letter}"
+        
+        try:
+            await context.bot.send_message(
+                chat_id=user_data["chat_id"],
+                text=feedback,
+                reply_to_message_id=user_data.get("poll_message_id")
+            )
+        except Exception as e:
+            logger.error(f"❌ Error sending feedback: {e}")
+        
+        try:
+            await context.bot.stop_poll(
+                chat_id=user_data["chat_id"],
+                message_id=user_data.get("poll_message_id")
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Could not stop poll: {e}")
+        
+        user_data["current_question"] += 1
+        user_data["active_poll_id"] = None
+        user_data["poll_message_id"] = None
+        
+        if "current_shuffled" in user_data:
+            del user_data["current_shuffled"]
+        
+        await asyncio.sleep(CONFIG["time_between_questions"])
+        await self.send_next_question(update, context)
+
+    async def finish_quiz(self, update: Update, context: CallbackContext):
+        """Finish the quiz and show results"""
+        user_data = context.user_data
+        user = update.effective_user
+        
+        if not user_data.get("quiz_active"):
+            return
+        
+        correct = user_data["correct_answers"]
+        total = len(user_data["questions"])
+        percentage = (correct / total) * 100 if total > 0 else 0
+        
+        if percentage >= 90:
+            performance = "🎉 Outstanding! You're a quiz master! 🏆"
+        elif percentage >= 75:
+            performance = "👍 Great job! You know your stuff! ⭐"
+        elif percentage >= 60:
+            performance = "😊 Good work! Keep practicing! ✨"
+        else:
+            performance = "📚 Keep studying! You'll get better! 💪"
+        
+        # Save progress with all 6 levels
+        self.db.save_user_progress(
+            user_id=user.id,
+            topic=f"{user_data['year']}_{user_data['term']}_{user_data['block']}_{user_data['subject']}",
+            subtopic=f"{user_data['category']}_{user_data['subtopic']}",
+            score=correct,
+            total_questions=total
+        )
+        
+        # Get display names for results
+        year_display = FileManager.get_year_display_name(user_data["year"])
+        term_display = FileManager.get_term_display_name(user_data["year"], user_data["term"])
+        block_display = FileManager.get_block_display_name(user_data["year"], user_data["term"], user_data["block"])
+        subject_display = FileManager.get_subject_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"])
+        category_display = FileManager.get_category_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"], user_data["category"])
+        subtopic_display = FileManager.get_subtopic_display_name(user_data["year"], user_data["term"], user_data["block"], user_data["subject"], user_data["category"], user_data["subtopic"])
+        
+        results_text = (
+            f"🎯 Quiz Completed!\n\n"
+            f"{performance}\n\n"
+            f"📊 Final Score: {correct}/{total} ({percentage:.1f}%)\n\n"
+            f"📅 {year_display} - {term_display} - {block_display}\n"
+            f"📚 {subject_display} - {category_display}\n"
+            f"🧩 {subtopic_display}\n\n"
+            f"Use /start to try another quiz!"
+        )
+        
+        await context.bot.send_message(
+            chat_id=user_data["chat_id"],
+            text=results_text
+        )
+        
+        user_data.clear()
+        logger.info(f"✅ Quiz completed for user {user.id}: {correct}/{total} ({percentage:.1f}%)")

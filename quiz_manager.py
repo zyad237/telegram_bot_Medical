@@ -5,6 +5,7 @@ import random
 import asyncio
 import logging
 from typing import Dict, List
+from functools import lru_cache
 
 from telegram import Update
 from telegram.ext import CallbackContext
@@ -44,43 +45,31 @@ class QuizManager:
         return shuffled_question
 
     def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
-        """Convert subtopic number back to actual filename with case-insensitive matching"""
+        """Convert subtopic number back to actual filename"""
         subtopics = FileManager.list_subtopics(year, term, block, subject, category)
-        print(f"🔍 Looking for subtopic '{subtopic_number}' in category '{category}'")
-        print(f"   Available files: {subtopics}")
         
-        # Handle case where subtopic_number might already be a filename
+        # If subtopic_number is already a full filename, return it
         if subtopic_number in subtopics:
-            print(f"✅ Exact match found: {subtopic_number}")
             return subtopic_number
         
-        # CASE-INSENSITIVE MATCHING
-        subtopics_lower = [f.lower() for f in subtopics]
-        subtopic_number_lower = subtopic_number.lower()
-        
-        if subtopic_number_lower in subtopics_lower:
-            actual_index = subtopics_lower.index(subtopic_number_lower)
-            actual_file = subtopics[actual_index]
-            print(f"✅ Case-insensitive match found: {subtopic_number} → {actual_file}")
-            return actual_file
+        # Look for exact match first
+        for filename in subtopics:
+            if filename == subtopic_number:
+                return filename
         
         # Look for files starting with the number
         for filename in subtopics:
-            # Check if filename starts with number_ pattern
-            if filename.lower().startswith(f"{subtopic_number}_".lower()):
-                print(f"✅ Found matching file: {filename}")
+            if filename.startswith(f"{subtopic_number}_"):
                 return filename
             
-            # Also check without leading zeros
+            # Check without leading zeros
             file_number = filename.split('_')[0].lstrip('0')
             input_number = subtopic_number.lstrip('0')
             if file_number == input_number:
-                print(f"✅ Found matching file (number only): {filename}")
                 return filename
         
-        print(f"❌ No file found for subtopic number: {subtopic_number}")
-        print(f"   Available files: {subtopics}")
-        return subtopic_number  # Fallback
+        # If no match found, return the original (might work if case matches)
+        return subtopic_number
 
     async def start_quiz(self, update: Update, context: CallbackContext, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str):
         """Start a new quiz with 6-level navigation"""
@@ -88,7 +77,6 @@ class QuizManager:
         
         # Convert number back to actual filename
         actual_filename = self._get_subtopic_filename(year, term, block, subject, category, subtopic_number)
-        print(f"📁 Loading questions for file: {actual_filename}")
         
         questions = FileManager.load_questions(year, term, block, subject, category, actual_filename)
         
@@ -100,15 +88,12 @@ class QuizManager:
             category_display = FileManager.get_category_display_name(year, term, block, subject, category)
             subtopic_display = FileManager.get_subtopic_display_name(year, term, block, subject, category, actual_filename)
             
-            print(f"❌ No questions found for: {year}/{term}/{block}/{subject}/{category}/{actual_filename}")
-            print(f"   File path: data/{year}/{term}/{block}/{subject}/{category}/{actual_filename}")
-            
             await query.edit_message_text(
                 f"❌ No valid questions found for:\n"
                 f"📅 {year_display} - {term_display} - {block_display}\n"
                 f"📚 {subject_display} - {category_display}\n"
                 f"🧩 {subtopic_display}\n\n"
-                f"Please check if the CSV file exists and has the correct format."
+                f"File: {actual_filename}"
             )
             return False
         
@@ -125,7 +110,7 @@ class QuizManager:
             "block": block,
             "subject": subject,
             "category": category,
-            "subtopic": actual_filename,  # Store actual filename
+            "subtopic": actual_filename,
             "chat_id": query.message.chat_id,
         })
         
@@ -155,13 +140,7 @@ class QuizManager:
         """Send the next question in the quiz"""
         user_data = context.user_data
         
-        print(f"🔍 SEND_NEXT_QUESTION called")
-        print(f"   Quiz active: {user_data.get('quiz_active')}")
-        print(f"   Current question: {user_data.get('current_question')}")
-        print(f"   Total questions: {len(user_data.get('questions', []))}")
-        
         if not user_data.get("quiz_active"):
-            print(f"❌ Quiz not active - returning")
             return
         
         current_index = user_data["current_question"]
@@ -169,11 +148,8 @@ class QuizManager:
         chat_id = user_data["chat_id"]
         
         if current_index >= len(questions):
-            print(f"🎯 Quiz finished - calling finish_quiz")
             await self.finish_quiz(update, context)
             return
-        
-        print(f"📝 Sending question {current_index + 1}/{len(questions)}")
         
         original_question = questions[current_index]
         shuffled_question = self.shuffle_choices(original_question)
@@ -195,12 +171,8 @@ class QuizManager:
             user_data["active_poll_id"] = message.poll.id
             user_data["poll_message_id"] = message.message_id
             
-            print(f"✅ Question {current_index + 1} sent successfully")
-            print(f"   Poll ID: {message.poll.id}")
-            print(f"   Message ID: {message.message_id}")
-            
         except Exception as e:
-            print(f"❌ Error sending question {current_index + 1}: {e}")
+            logger.error(f"❌ Error sending question {current_index + 1}: {e}")
             user_data["current_question"] += 1
             await asyncio.sleep(2)
             await self.send_next_question(update, context)
@@ -210,33 +182,19 @@ class QuizManager:
         poll_answer = update.poll_answer
         user_data = context.user_data
         
-        print(f"🎯 POLL ANSWER RECEIVED:")
-        print(f"   Poll ID: {poll_answer.poll_id}")
-        print(f"   User ID: {poll_answer.user.id}")
-        print(f"   Option IDs: {poll_answer.option_ids}")
-        print(f"   Active Poll ID in user_data: {user_data.get('active_poll_id')}")
-        print(f"   Quiz Active: {user_data.get('quiz_active')}")
-        
         # Check if this is our poll
         if user_data.get("active_poll_id") != poll_answer.poll_id:
-            print(f"❌ Poll ID mismatch - ignoring")
             return
         
         if not user_data.get("quiz_active"):
-            print(f"❌ Quiz not active - ignoring")
             return
         
         shuffled_question = user_data.get("current_shuffled")
         if not shuffled_question:
-            print(f"❌ No current shuffled question - ignoring")
             return
         
         user_answer = poll_answer.option_ids[0] if poll_answer.option_ids else None
         is_correct = user_answer == shuffled_question["correct_index"]
-        
-        print(f"   User answer: {user_answer}")
-        print(f"   Correct index: {shuffled_question['correct_index']}")
-        print(f"   Is correct: {is_correct}")
         
         if is_correct:
             user_data["correct_answers"] += 1
@@ -251,30 +209,23 @@ class QuizManager:
                 text=feedback,
                 reply_to_message_id=user_data.get("poll_message_id")
             )
-            print(f"✅ Feedback sent: {feedback}")
         except Exception as e:
-            print(f"❌ Error sending feedback: {e}")
+            logger.error(f"❌ Error sending feedback: {e}")
         
-        # Stop the poll
         try:
             await context.bot.stop_poll(
                 chat_id=user_data["chat_id"],
                 message_id=user_data.get("poll_message_id")
             )
-            print(f"✅ Poll stopped")
         except Exception as e:
-            print(f"⚠️ Could not stop poll: {e}")
+            logger.warning(f"⚠️ Could not stop poll: {e}")
         
-        # Move to next question
         user_data["current_question"] += 1
         user_data["active_poll_id"] = None
         user_data["poll_message_id"] = None
         
         if "current_shuffled" in user_data:
             del user_data["current_shuffled"]
-        
-        print(f"📊 Progress: {user_data['current_question']}/{len(user_data['questions'])}")
-        print(f"📈 Correct answers: {user_data['correct_answers']}")
         
         await asyncio.sleep(CONFIG["time_between_questions"])
         await self.send_next_question(update, context)

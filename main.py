@@ -75,7 +75,7 @@ def main():
         bot_handlers.register_handlers(application)
         application.add_error_handler(error_handler)
         
-        # Log available years and structure
+        # Log available structure
         years = FileManager.list_years()
         if years:
             logger.info(f"📚 Available years: {', '.join(years)}")
@@ -83,22 +83,6 @@ def main():
                 terms = FileManager.list_terms(year)
                 if terms:
                     logger.info(f"   {year}: {len(terms)} terms")
-                    for term in terms:
-                        blocks = FileManager.list_blocks(year, term)
-                        if blocks:
-                            logger.info(f"     {term}: {len(blocks)} blocks")
-                            for block in blocks:
-                                subjects = FileManager.list_subjects(year, term, block)
-                                if subjects:
-                                    logger.info(f"       {block}: {len(subjects)} subjects")
-                                    for subject in subjects:
-                                        categories = FileManager.list_categories(year, term, block, subject)
-                                        if categories:
-                                            logger.info(f"         {subject}: {len(categories)} categories")
-        else:
-            logger.warning("⚠️ No academic data found in data folder")
-            logger.info("💡 Please check your data directory structure:")
-            logger.info("   data/year_1/term_1/block_1/subject/category/")
         
         # Start the bot
         logger.info("🤖 Medical Quiz Bot is starting...")
