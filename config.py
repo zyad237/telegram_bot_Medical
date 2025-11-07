@@ -31,7 +31,7 @@ NAVIGATION_STRUCTURE = {
                                 "display_name": "📊 Anatomy",
                                 "categories": {
                                     "general": {
-                                        "display_name": "General Anatomy",
+                                        "display_name": "🎁 General Anatomy",
                                         "subtopics": {
                                             "01_Introduction to Anatomy.csv": "1. Introduction to Anatomy",
                                             "02_Skin and Fascia.csv": "2. Skin and Fascia",
@@ -70,36 +70,27 @@ NAVIGATION_STRUCTURE = {
                                     "midterm": {
                                         "display_name": "📝 Midterm Exams",
                                         "subtopics": {
-                                            "01_Midterm Questions.csv": "Midterm 1",
-                                            "02_Midterm Questions.csv": "Midterm 2",
-                                            "03_Midterm Questions.csv": "Midterm 3"
+                                            "01_Midterm Questions.csv": "Midterm Trial 1",
+                                            "02_Midterm Questions.csv": "Midterm Trial 2",
+                                            "03_Midterm Questions.csv": "Midterm Trial 3"
                                         }
                                     },
                                     "final": {
                                         "display_name": "🎯 Final Exams", 
                                         "subtopics": {
-                                            "01_Final Questions.csv": "Final 1",
-                                            "02_Final Questions.csv": "Final 2",
-                                            "03_Final Questions.csv": "Final 3"
-                                        }
-                                    },
-                                    "formative": {
-                                        "display_name": "📚 Formative Assessments",
-                                        "subtopics": {
-                                            "01_Formative.csv": "Formative 1",
-                                            "02_Formative.csv": "Formative 2", 
-                                            "03_Formative.csv": "Formative 3",
-                                            "04_Formative.csv": "Formative 4",
-                                            "05_Formative.csv": "Formative 5"
+                                            "01_Final Questions.csv": "Final Trial 1",
+                                            "02_Final Questions.csv": "Final Trial 2",
+                                            "03_Final Questions.csv": "Final Trial 3"
                                         }
                                     }
+                                    
                                 }
                             },
                             "histology": {
                                 "display_name": "🔬 Histology",
                                 "categories": {
                                     "general": {
-                                        "display_name": "General Histology", 
+                                        "display_name": "🎁 General Histology", 
                                         "subtopics": {
                                             "01_Paraffin technique.csv": "1. Paraffin Technique",
                                             "02_Types of microscopes.csv": "2. Types of Microscopes",
@@ -142,7 +133,17 @@ NAVIGATION_STRUCTURE = {
                                         }
                                     }
                                 }
-                            }
+                            },
+                            "formative": {
+                                        "display_name": "📚 Formative Assessments",
+                                        "subtopics": {
+                                            "01_Formative.csv": "Formative Week 1 (40, 41, 42, 43)",
+                                            "02_Formative.csv": "Formative Week 2 (40, 41, 42, 43)", 
+                                            "03_Formative.csv": "Formative Week 3 (40, 41, 42, 43)",
+                                            "04_Formative.csv": "Formative Week 4 (41, 42, 43)",
+                                            "05_Formative.csv": "Formative Week 5 (42, 43)"
+                                        }
+                                    }
                         }
                     }
                 }
