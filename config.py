@@ -83,7 +83,6 @@ NAVIGATION_STRUCTURE = {
                                             "03_Final Questions.csv": "Final Trial 3"
                                         }
                                     }
-                                    
                                 }
                             },
                             "histology": {
@@ -135,7 +134,10 @@ NAVIGATION_STRUCTURE = {
                                 }
                             },
                             "formative": {
-                                        "display_name": "📚 Formative Assessments",
+                                "display_name": "📚 Formative Assessments",
+                                "categories": {
+                                    "weekly": {
+                                        "display_name": "📅 Weekly Assessments",
                                         "subtopics": {
                                             "01_Formative.csv": "Formative Week 1 (40, 41, 42, 43)",
                                             "02_Formative.csv": "Formative Week 2 (40, 41, 42, 43)", 
@@ -144,6 +146,8 @@ NAVIGATION_STRUCTURE = {
                                             "05_Formative.csv": "Formative Week 5 (42, 43)"
                                         }
                                     }
+                                }
+                            }
                         }
                     }
                 }
