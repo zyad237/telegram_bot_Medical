@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Telegram Quiz Bot - Main Entry Point
+Telegram Quiz Bot - Main Entry Point (Railway Compatible)
 """
 import logging
+import os
 from telegram.ext import Application
 from telegram.error import TelegramError
 
 from config import TOKEN, CONFIG
-from utils import acquire_startup_lock
 from database import DatabaseManager
 from file_manager import FileManager
 from quiz_manager import QuizManager
@@ -18,11 +18,26 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
     handlers=[
-        logging.FileHandler('quiz_bot.log', encoding='utf-8'),
-        logging.StreamHandler()
+        logging.StreamHandler()  # Railway captures stdout/stderr
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Railway-compatible startup lock
+def acquire_railway_lock():
+    """Simple lock mechanism for Railway"""
+    lock_file = 'bot.lock'
+    if os.path.exists(lock_file):
+        logger.warning("⚠️ Lock file exists - another instance might be running")
+        return None
+    try:
+        with open(lock_file, 'w') as f:
+            f.write("1")
+        logger.info("✅ Railway lock acquired")
+        return lock_file
+    except Exception as e:
+        logger.error(f"❌ Could not acquire lock: {e}")
+        return None
 
 async def error_handler(update, context):
     """Global error handler"""
@@ -45,11 +60,10 @@ async def error_handler(update, context):
         logger.error(f"❌ Could not send error message: {e}")
 
 def main():
-    """Start the bot with all modules integrated"""
+    """Start the bot with Railway compatibility"""
     
-    # Acquire startup lock to prevent multiple instances
-    lock_fd = acquire_startup_lock()
-    lock_file = 'bot.lock'
+    # Acquire startup lock
+    lock_file = acquire_railway_lock()
     
     if not TOKEN:
         logger.error("❌ No bot token provided.")
@@ -57,7 +71,7 @@ def main():
     
     try:
         # Initialize components
-        logger.info("🔄 Initializing components...")
+        logger.info("🔄 Initializing components on Railway...")
         
         # Initialize database
         db = DatabaseManager(CONFIG["database_file"])
@@ -79,29 +93,11 @@ def main():
         years = FileManager.list_years()
         if years:
             logger.info(f"📚 Available years: {', '.join(years)}")
-            for year in years:
-                terms = FileManager.list_terms(year)
-                if terms:
-                    logger.info(f"   {year}: {len(terms)} terms")
-                    for term in terms:
-                        blocks = FileManager.list_blocks(year, term)
-                        if blocks:
-                            logger.info(f"     {term}: {len(blocks)} blocks")
-                            for block in blocks:
-                                subjects = FileManager.list_subjects(year, term, block)
-                                if subjects:
-                                    logger.info(f"       {block}: {len(subjects)} subjects")
-                                    for subject in subjects:
-                                        categories = FileManager.list_categories(year, term, block, subject)
-                                        if categories:
-                                            logger.info(f"         {subject}: {len(categories)} categories")
         else:
             logger.warning("⚠️ No academic data found in data folder")
-            logger.info("💡 Please check your data directory structure:")
-            logger.info("   data/year_1/term_1/block_1/subject/category/")
         
         # Start the bot
-        logger.info("🤖 Medical Quiz Bot is starting...")
+        logger.info("🤖 Medical Quiz Bot is starting on Railway...")
         
         application.run_polling(
             allowed_updates=['message', 'callback_query', 'poll_answer'],
@@ -116,15 +112,10 @@ def main():
     
     finally:
         # Release lock on exit
-        if lock_fd:
+        if lock_file and os.path.exists(lock_file):
             try:
-                import fcntl
-                import os
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                lock_fd.close()
-                if os.path.exists(lock_file):
-                    os.remove(lock_file)
-                logger.info("🔓 Startup lock released")
+                os.remove(lock_file)
+                logger.info("🔓 Railway lock released")
             except Exception as e:
                 logger.error(f"❌ Error releasing lock: {e}")
 
