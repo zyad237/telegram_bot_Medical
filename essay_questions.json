@@ -1,0 +1,49 @@
+{
+  "metadata": {
+    "subject": "anatomy",
+    "category": "general",
+    "difficulty": "intermediate",
+    "textbook_reference": "Gray's Anatomy"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "Describe the anatomical structure and function of the synovial joints, including the different types and their specific characteristics.",
+      "expected_key_points": [
+        "Definition of synovial joints",
+        "Six main characteristics: joint cavity, articular cartilage, synovial membrane, synovial fluid, fibrous capsule, ligaments",
+        "Types: plane, hinge, pivot, condyloid, saddle, ball-and-socket",
+        "Examples for each type",
+        "Clinical significance of synovial fluid"
+      ],
+      "hint": "Focus on the structural components and how they relate to function.",
+      "max_score": 10
+    },
+    {
+      "id": 2, 
+      "question": "Explain the blood supply and innervation of the heart, including the coronary arteries and conducting system.",
+      "expected_key_points": [
+        "Right and left coronary arteries",
+        "Main branches: anterior interventricular, circumflex, marginal",
+        "Coronary sinus and venous drainage",
+        "SA node, AV node, bundle of His, Purkinje fibers",
+        "Autonomic innervation: sympathetic and parasympathetic"
+      ],
+      "hint": "Consider both arterial supply and venous drainage, plus neural control.",
+      "max_score": 10
+    },
+    {
+      "id": 3,
+      "question": "Describe the histological layers of the gastrointestinal tract and their specialized adaptations in different regions.",
+      "expected_key_points": [
+        "Four main layers: mucosa, submucosa, muscularis externa, serosa/adventitia",
+        "Mucosal components: epithelium, lamina propria, muscularis mucosae",
+        "Specializations: gastric pits, intestinal villi, Brunner's glands",
+        "Regional differences: esophagus vs stomach vs small intestine vs large intestine",
+        "Functional correlation of histological features"
+      ],
+      "hint": "Compare and contrast different regions of the GI tract.",
+      "max_score": 10
+    }
+  ]
+}

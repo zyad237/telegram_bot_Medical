@@ -77,6 +77,16 @@ class CallbackManager:
         safe_category = CallbackManager.sanitize_callback_text(category)
         safe_subtopic = CallbackManager.sanitize_callback_text(subtopic)
         return f"q:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}:{safe_subtopic}"[:CallbackManager.MAX_CALLBACK_LENGTH]
+    # In callback_manager.py, add:
+    @staticmethod
+    def create_essay_callback(year: str, term: str, block: str, subject: str, category: str) -> str:
+        """Create essay category callback data"""
+        safe_year = CallbackManager.sanitize_callback_text(year)
+        safe_term = CallbackManager.sanitize_callback_text(term)
+        safe_block = CallbackManager.sanitize_callback_text(block)
+        safe_subject = CallbackManager.sanitize_callback_text(subject)
+        safe_category = CallbackManager.sanitize_callback_text(category)
+        return f"e:{safe_year}:{safe_term}:{safe_block}:{safe_subject}:{safe_category}"[:CallbackManager.MAX_CALLBACK_LENGTH]
     
     @staticmethod
     def parse_callback_data(callback_data: str) -> Optional[Dict]:
