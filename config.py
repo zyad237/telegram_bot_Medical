@@ -4,6 +4,8 @@ Configuration for medical curriculum structure with numbered CSV files
 import os
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN")  # Add this
+ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")      # Add this
 
 if not TOKEN:
     print("❌ ERROR: TELEGRAM_BOT_TOKEN environment variable not set!")
