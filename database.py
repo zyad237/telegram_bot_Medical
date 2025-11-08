@@ -1,11 +1,10 @@
 """
-Database management with Google Sheets logging
+Database management with admin notifications
 """
 import sqlite3
 import logging
 import os
-import gspread
-from google.oauth2.service_account import Credentials
+import requests
 from typing import Dict
 
 logger = logging.getLogger(__name__)
@@ -15,39 +14,7 @@ class DatabaseManager:
         self.db_file = db_file
         self.admin_bot_token = os.getenv("ADMIN_BOT_TOKEN")
         self.admin_chat_id = os.getenv("ADMIN_CHAT_ID")
-        self.setup_google_sheets()
         self.init_database()
-    
-    def setup_google_sheets(self):
-        """Setup Google Sheets connection using Railway environment variables"""
-        try:
-            # Get Google Sheets credentials from Railway
-            google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
-            spreadsheet_id = os.getenv("GOOGLE_SHEET_ID")
-            
-            if google_creds_json and spreadsheet_id:
-                # Parse JSON credentials from environment variable
-                import json
-                creds_dict = json.loads(google_creds_json)
-                
-                # Authenticate with Google Sheets
-                scope = ['https://www.googleapis.com/auth/spreadsheets']
-                creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-                self.gc = gspread.authorize(creds)
-                self.sheet = self.gc.open_by_key(spreadsheet_id).sheet1
-                
-                # Setup headers if sheet is empty
-                if not self.sheet.get_all_records():
-                    self.sheet.append_row(["User ID", "Username", "First Name", "Last Name", "Timestamp"])
-                
-                logger.info("✅ Google Sheets connected successfully")
-            else:
-                self.sheet = None
-                logger.info("ℹ️ Google Sheets not configured")
-                
-        except Exception as e:
-            logger.error(f"❌ Google Sheets setup error: {e}")
-            self.sheet = None
     
     def init_database(self):
         try:
@@ -79,25 +46,35 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.error(f"❌ Database error: {e}")
     
-    def log_to_google_sheets(self, user_id: int, username: str, first_name: str, last_name: str):
-        """Log user to Google Sheets"""
-        if not self.sheet:
+    def send_to_admin(self, user_id: int, username: str, first_name: str, last_name: str):
+        """Send user info to admin bot"""
+        if not self.admin_bot_token or not self.admin_chat_id:
+            logger.warning("ℹ️ Admin bot not configured")
             return
         
+        message = (
+            f"🆕 New User Started Bot:\n"
+            f"👤 ID: `{user_id}`\n"
+            f"📛 Username: @{username or 'No username'}\n" 
+            f"👨‍💼 Name: {first_name or ''} {last_name or ''}"
+        )
+        
         try:
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            self.sheet.append_row([
-                user_id,
-                f"@{username}" if username else "No username",
-                first_name,
-                last_name or "",
-                timestamp
-            ])
-            logger.info(f"✅ User {user_id} logged to Google Sheets")
+            response = requests.post(
+                f"https://api.telegram.org/bot{self.admin_bot_token}/sendMessage",
+                json={
+                    "chat_id": self.admin_chat_id,
+                    "text": message,
+                    "parse_mode": "Markdown"
+                },
+                timeout=10
+            )
+            if response.status_code == 200:
+                logger.info(f"✅ Admin notified about user {user_id}")
+            else:
+                logger.warning(f"⚠️ Admin notification failed: {response.text}")
         except Exception as e:
-            logger.error(f"❌ Google Sheets logging error: {e}")
+            logger.warning(f"⚠️ Could not notify admin: {e}")
     
     def update_user(self, user_id: int, username: str, first_name: str, last_name: str):
         try:
@@ -109,15 +86,15 @@ class DatabaseManager:
                 existing_user = cursor.fetchone()
                 
                 if not existing_user:
-                    # New user - insert and log
+                    # New user - insert and notify admin
                     cursor.execute('''
                         INSERT INTO users (user_id, username, first_name, last_name)
                         VALUES (?, ?, ?, ?)
                     ''', (user_id, username, first_name, last_name))
                     conn.commit()
                     
-                    # Log to Google Sheets
-                    self.log_to_google_sheets(user_id, username, first_name, last_name)
+                    # Send to admin bot
+                    self.send_to_admin(user_id, username, first_name, last_name)
                     
                     logger.info(f"✅ New user added: {user_id}")
                 else:
