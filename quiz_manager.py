@@ -1,9 +1,10 @@
 """
-Quiz logic and management for 6-level navigation
+Quiz logic and management for 6-level navigation with AI explanations
 """
 import random
 import asyncio
 import logging
+import requests
 from typing import Dict, List
 
 from telegram import Update
@@ -42,6 +43,57 @@ class QuizManager:
         shuffled_question["shuffled_correct_letter"] = ['A', 'B', 'C', 'D'][new_correct_index]
         
         return shuffled_question
+
+    async def get_ai_explanation(self, question_data: Dict, user_answer: str, is_correct: bool, context: str = "medical_education") -> str:
+        """Get AI explanation for question from n8n webhook"""
+        if is_correct:
+            return "✅ Correct! Well done!"
+        
+        try:
+            payload = {
+                "question": question_data["question"],
+                "user_answer": user_answer,
+                "correct_answer": question_data["correct"],
+                "options": question_data["options"],
+                "context": context
+            }
+            
+            # Call n8n webhook synchronously in thread
+            response = await asyncio.get_event_loop().run_in_executor(
+                None, 
+                lambda: requests.post(
+                    CONFIG["n8n_mcq_webhook"], 
+                    json=payload, 
+                    timeout=15
+                )
+            )
+            
+            if response.status_code == 200:
+                ai_response = response.json()
+                explanation = ai_response.get('explanation', '').strip()
+                
+                if explanation:
+                    return f"❌ {explanation}"
+                else:
+                    correct_letter = question_data["correct"]
+                    correct_answer = question_data["options"][ord(correct_letter) - ord('A')]
+                    return f"❌ Incorrect. The correct answer was {correct_letter}: {correct_answer}"
+            else:
+                logger.warning(f"AI webhook returned status {response.status_code}")
+                correct_letter = question_data["correct"]
+                correct_answer = question_data["options"][ord(correct_letter) - ord('A')]
+                return f"❌ Incorrect. The correct answer was {correct_letter}: {correct_answer}"
+                
+        except requests.exceptions.Timeout:
+            logger.warning("AI explanation request timed out")
+            correct_letter = question_data["correct"]
+            correct_answer = question_data["options"][ord(correct_letter) - ord('A')]
+            return f"❌ Incorrect. The correct answer was {correct_letter}: {correct_answer}"
+        except Exception as e:
+            logger.error(f"AI explanation error: {e}")
+            correct_letter = question_data["correct"]
+            correct_answer = question_data["options"][ord(correct_letter) - ord('A')]
+            return f"❌ Incorrect. The correct answer was {correct_letter}: {correct_answer}"
 
     def _get_subtopic_filename(self, year: str, term: str, block: str, subject: str, category: str, subtopic_number: str) -> str:
         """Convert subtopic number back to actual filename"""
@@ -133,6 +185,7 @@ class QuizManager:
             f"🧩 {subtopic_display}\n\n"
             f"• Total questions: {len(questions)}\n"
             f"• Answer choices are shuffled\n"
+            f"• AI explanations for wrong answers\n"
             f"• No time limits\n\n"
             f"Good luck! 🍀"
         )
@@ -196,7 +249,7 @@ class QuizManager:
             await self.send_next_question(update, context)
 
     async def handle_poll_answer(self, update: Update, context: CallbackContext):
-        """Handle poll answers"""
+        """Handle poll answers with AI explanations"""
         poll_answer = update.poll_answer
         user_data = context.user_data
         
@@ -221,19 +274,30 @@ class QuizManager:
             print(f"❌ No current shuffled question - ignoring")
             return
         
-        user_answer = poll_answer.option_ids[0] if poll_answer.option_ids else None
-        is_correct = user_answer == shuffled_question["correct_index"]
+        user_answer_index = poll_answer.option_ids[0] if poll_answer.option_ids else None
+        is_correct = user_answer_index == shuffled_question["correct_index"]
         
-        print(f"   User answer: {user_answer}")
+        print(f"   User answer: {user_answer_index}")
         print(f"   Correct index: {shuffled_question['correct_index']}")
         print(f"   Is correct: {is_correct}")
         
-        if is_correct:
+        # Get user's actual answer text
+        user_answer_text = "No answer selected"
+        if user_answer_index is not None and 0 <= user_answer_index < len(shuffled_question["options"]):
+            user_answer_text = shuffled_question["options"][user_answer_index]
+        
+        # Get AI explanation for wrong answers
+        if not is_correct:
+            feedback = await self.get_ai_explanation(
+                shuffled_question, 
+                user_answer_text, 
+                is_correct
+            )
+        else:
             user_data["correct_answers"] += 1
             feedback = "✅ Correct! Well done!"
-        else:
-            correct_letter = shuffled_question["shuffled_correct_letter"]
-            feedback = f"❌ Incorrect. The correct answer was {correct_letter}"
+        
+        print(f"   Feedback: {feedback}")
         
         try:
             await context.bot.send_message(
@@ -314,7 +378,7 @@ class QuizManager:
             f"📅 {year_display} - {term_display} - {block_display}\n"
             f"📚 {subject_display} - {category_display}\n"
             f"🧩 {subtopic_display}\n\n"
-            f"Use /start to try another quiz!"
+            f"Use /start to try another quiz or /essay for essay questions!"
         )
         
         await context.bot.send_message(

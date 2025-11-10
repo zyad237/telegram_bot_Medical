@@ -1,8 +1,15 @@
 """
+<<<<<<< Updated upstream
 Bot command and callback handlers for 6-level navigation with AI integration
 """
 import logging
 import asyncio
+=======
+Bot command and callback handlers for 6-level navigation with AI essay support
+"""
+import logging
+import requests
+>>>>>>> Stashed changes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackQueryHandler, CommandHandler, PollAnswerHandler, MessageHandler, filters
 from telegram.error import BadRequest
@@ -11,8 +18,12 @@ from file_manager import FileManager
 from callback_manager import CallbackManager
 from quiz_manager import QuizManager
 from database import DatabaseManager
+<<<<<<< Updated upstream
 from ai_manager import AIManager
 from simple_essay_manager import SimpleEssayManager
+=======
+from config import CONFIG, ESSAY_QUESTIONS, get_essay_questions_by_subject
+>>>>>>> Stashed changes
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +52,16 @@ class BotHandlers:
             display_name = FileManager.get_year_display_name(year)
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
+<<<<<<< Updated upstream
         # Add AI help button
         keyboard.append([InlineKeyboardButton("🤖 AI Medical Tutor", callback_data="ai_tutor_menu")])
+=======
+        # Add essay button to main menu
+        keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
+>>>>>>> Stashed changes
         
         await update.message.reply_text(
-            "🎓 Medical Quiz Bot\n\nSelect your academic year:",
+            "🎓 Medical Quiz Bot\n\nSelect your academic year or try essay questions:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
     
@@ -56,6 +72,7 @@ class BotHandlers:
             "📚 Available Commands:\n"
             "• /start - Start the bot and select quiz\n"
             "• /stats - View your quiz statistics\n"
+<<<<<<< Updated upstream
             "• /cancel - Cancel current session\n"
             "• /explain - Explain current quiz question\n"
             "• /ai <question> - Ask AI medical tutor\n"
@@ -72,12 +89,35 @@ class BotHandlers:
             "• Any time: /ai <question> for medical tutoring\n"
             "• Search: /search <topic> in college materials\n"
             "• Essay evaluation: AI-powered feedback\n\n"
+=======
+            "• /essay - Practice essay questions with AI grading\n"
+            "• /cancel - Cancel current quiz or essay\n"
+            "• /help - Show this help message\n\n"
+            "🎯 How to Use:\n"
+            "1. Use /start to begin\n"
+            "2. Navigate: Year → Term → Block → Subject → Category → Quiz\n"
+            "3. Answer questions at your own pace\n"
+            "4. Get AI explanations for wrong answers\n"
+            "5. Try essay questions within each subject\n\n"
+            "📝 Essay Features:\n"
+            "• Subject-specific essay questions\n"
+            "• AI-powered grading with medical context\n"
+            "• Spelling-tolerant for medical terminology\n"
+            "• Key concept evaluation\n"
+            "• Constructive feedback\n\n"
+>>>>>>> Stashed changes
             "📖 Navigation:\n"
             "• Years: Academic years\n"
             "• Terms: Semester terms\n"
             "• Blocks: Curriculum blocks\n"
+<<<<<<< Updated upstream
             "• Subjects: Anatomy, Histology, etc.\n"
             "• Categories: Quizzes, Essays, Simple Essays"
+=======
+            "• Subjects: Anatomy, Histology, Physiology, Biochemistry\n"
+            "• Categories: General, Midterm, Final, Essays\n"
+            "• Quizzes: Individual topic quizzes"
+>>>>>>> Stashed changes
         )
         
         await update.message.reply_text(help_text)
@@ -87,18 +127,255 @@ class BotHandlers:
         user = update.effective_user
         stats = self.db.get_user_stats(user.id)
         
-        if stats['total_quizzes'] == 0:
-            await update.message.reply_text("📊 You haven't completed any quizzes yet!\nUse /start to begin your first quiz.")
+        if stats['total_quizzes'] == 0 and stats['total_essays'] == 0:
+            await update.message.reply_text("📊 You haven't completed any quizzes or essays yet!\nUse /start to begin.")
             return
         
         stats_text = (
             f"📊 Your Quiz Statistics\n\n"
             f"• Total Quizzes Completed: {stats['total_quizzes']}\n"
-            f"• Average Score: {stats['average_score']}%\n\n"
+            f"• Average Quiz Score: {stats['average_score']}%\n"
+            f"• Total Essays Completed: {stats['total_essays']}\n"
+            f"• Average Essay Score: {stats['average_essay_score']}/10\n\n"
             f"Keep up the great work! 🎯"
         )
         
         await update.message.reply_text(stats_text)
+    
+    async def essay_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /essay command for essay questions"""
+        await self.show_essay_subjects(update, context)
+    
+    async def show_essay_subjects(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show available subjects for essay questions"""
+        subjects = ["anatomy", "histology", "physiology", "biochemistry"]
+        available_subjects = []
+        
+        # Check which subjects have essay questions
+        for subject in subjects:
+            subject_essays = get_essay_questions_by_subject(subject)
+            if subject_essays:
+                available_subjects.append(subject)
+        
+        if not available_subjects:
+            if hasattr(update, 'message'):
+                await update.message.reply_text(
+                    "❌ No essay questions available at the moment.\n\n"
+                    "Please check that essay CSV files are properly configured in the data folder."
+                )
+            else:
+                await update.callback_query.edit_message_text(
+                    "❌ No essay questions available at the moment.\n\n"
+                    "Please check that essay CSV files are properly configured in the data folder."
+                )
+            return
+        
+        keyboard = []
+        for subject in available_subjects:
+            subject_display = subject.title()
+            keyboard.append([InlineKeyboardButton(
+                f"📝 {subject_display} Essays", 
+                callback_data=f"essay_subject:{subject}"
+            )])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Main Menu", callback_data="main_menu")])
+        
+        if hasattr(update, 'message'):
+            await update.message.reply_text(
+                "📝 Essay Questions by Subject\n\n"
+                "Select a subject to practice essay writing. "
+                "AI will evaluate your responses based on key medical concepts "
+                "and essential terminology.\n\n"
+                "✅ Spelling variations accepted for medical terms\n"
+                "✅ Focus on key concepts and terminology\n"
+                "✅ Detailed AI feedback provided",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        else:
+            await update.callback_query.edit_message_text(
+                "📝 Essay Questions by Subject\n\n"
+                "Select a subject to practice essay writing. "
+                "AI will evaluate your responses based on key medical concepts "
+                "and essential terminology.\n\n"
+                "✅ Spelling variations accepted for medical terms\n"
+                "✅ Focus on key concepts and terminology\n"
+                "✅ Detailed AI feedback provided",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+    
+    async def show_subject_essays(self, update: Update, context: ContextTypes.DEFAULT_TYPE, subject: str):
+        """Show available essay questions for a specific subject"""
+        query = update.callback_query
+        
+        subject_essays = get_essay_questions_by_subject(subject)
+        
+        if not subject_essays:
+            await query.edit_message_text(
+                f"❌ No essay questions available for {subject.title()}.\n\n"
+                f"Please check the {subject}_essays.csv file in the data folder.",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("« Back to Subjects", callback_data="essay_main")]
+                ])
+            )
+            return
+        
+        keyboard = []
+        for essay_full_id, essay_data in subject_essays.items():
+            essay_id = essay_data['essay_id']
+            question_preview = essay_data['question'][:60] + "..." if len(essay_data['question']) > 60 else essay_data['question']
+            keyboard.append([InlineKeyboardButton(
+                f"Essay {essay_id}: {question_preview}", 
+                callback_data=f"start_essay:{essay_full_id}"
+            )])
+        
+        keyboard.append([InlineKeyboardButton("« Back to Subjects", callback_data="essay_main")])
+        
+        await query.edit_message_text(
+            f"📝 {subject.title()} Essay Questions\n\n"
+            f"Select an essay question to answer. "
+            f"AI will evaluate your response based on {subject.lower()}-specific concepts and essential medical terminology.",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    
+    async def start_essay_question(self, update: Update, context: ContextTypes.DEFAULT_TYPE, essay_full_id: str):
+        """Start an essay question"""
+        query = update.callback_query
+        
+        essay_data = ESSAY_QUESTIONS.get(essay_full_id)
+        if not essay_data:
+            await query.edit_message_text("❌ Essay question not found.")
+            return
+        
+        subject = essay_data['subject']
+        essay_id = essay_data['essay_id']
+        
+        # Store essay context in user_data
+        context.user_data.update({
+            "current_essay": {
+                "full_id": essay_full_id,
+                "subject": subject,
+                "essay_id": essay_id,
+                "question": essay_data['question'],
+                "waiting_for_response": True
+            },
+            "quiz_active": False  # Ensure quiz state is clear
+        })
+        
+        await query.edit_message_text(
+            f"📝 {subject.title()} Essay Question {essay_id}\n\n"
+            f"**Question:** {essay_data['question']}\n\n"
+            f"💡 **Please type your essay response now.**\n\n"
+            f"**AI Evaluation Criteria:**\n"
+            f"• {subject.title()}-specific concepts (40%)\n"
+            f"• Medical terminology usage (30%)\n" 
+            f"• Clarity and structure (20%)\n"
+            f"• Completeness (10%)\n\n"
+            f"✅ Spelling variations accepted for medical terms\n"
+            f"✅ Focus on {subject.lower()}-specific concepts\n"
+            f"✅ Minimum 100 words recommended\n\n"
+            f"Type /cancel to stop.",
+            parse_mode="Markdown"
+        )
+    
+    async def handle_essay_response(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle user's essay response and send to AI for grading"""
+        user_data = context.user_data
+        user_text = update.message.text
+        
+        if not user_data.get("waiting_for_response"):
+            return
+        
+        essay_data = user_data.get("current_essay")
+        if not essay_data:
+            return
+        
+        # Send "grading in progress" message
+        grading_msg = await update.message.reply_text(
+            f"🔄 AI is evaluating your {essay_data['subject']} essay... This may take a moment."
+        )
+        
+        try:
+            # Call n8n essay grading webhook
+            payload = {
+                "essay_id": essay_data["full_id"],
+                "subject": essay_data["subject"],
+                "question": essay_data["question"],
+                "user_response": user_text,
+                "user_id": update.effective_user.id,
+                "context": f"medical_education_{essay_data['subject']}"
+            }
+            
+            response = requests.post(
+                CONFIG["n8n_essay_webhook"],
+                json=payload,
+                timeout=45  # Longer timeout for AI processing
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                feedback_text = (
+                    f"📝 **{essay_data['subject'].title()} Essay Evaluation**\n\n"
+                    f"📊 **Score:** {result.get('score', 'N/A')}/10\n\n"
+                    f"**📋 Feedback:**\n{result.get('feedback', 'No feedback available.')}\n\n"
+                    f"**🔑 Key Concepts:**\n{result.get('key_concepts', 'N/A')}\n\n"
+                    f"**💡 Suggestions:**\n{result.get('suggestions', 'N/A')}\n\n"
+                    f"**📝 Essential Terms Identified:**\n{result.get('essential_terms', 'N/A')}"
+                )
+                
+                # Save essay result to database
+                self.db.save_essay_progress(
+                    user_id=update.effective_user.id,
+                    essay_id=essay_data["full_id"],
+                    question=essay_data["question"],
+                    user_response=user_text,
+                    score=result.get('score', 0),
+                    feedback=result.get('feedback', ''),
+                    key_concepts=result.get('key_concepts', ''),
+                    essential_terms=result.get('essential_terms', '')
+                )
+                
+            else:
+                feedback_text = (
+                    f"❌ Error evaluating {essay_data['subject']} essay. The AI service may be unavailable.\n\n"
+                    "Please try again later or use /start to return to the main menu."
+                )
+                
+        except requests.exceptions.Timeout:
+            feedback_text = "⏰ Essay evaluation timed out. Please try again with a shorter response."
+        except Exception as e:
+            logger.error(f"Essay grading error: {e}")
+            feedback_text = "❌ Error evaluating essay. Please try again."
+        
+        # Send feedback and clean up
+        try:
+            await context.bot.delete_message(
+                chat_id=update.effective_chat.id,
+                message_id=grading_msg.message_id
+            )
+        except Exception as e:
+            logger.error(f"Error deleting grading message: {e}")
+        
+        await update.message.reply_text(feedback_text, parse_mode="Markdown")
+        
+        # Offer to try another essay from the same subject
+        keyboard = [
+            [InlineKeyboardButton(
+                f"📝 Another {essay_data['subject'].title()} Essay", 
+                callback_data=f"essay_subject:{essay_data['subject']}"
+            )],
+            [InlineKeyboardButton("📚 All Essay Subjects", callback_data="essay_main")],
+            [InlineKeyboardButton("🎯 Back to Main Menu", callback_data="main_menu")]
+        ]
+        
+        await update.message.reply_text(
+            "What would you like to do next?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+        
+        # Clear essay state
+        user_data["waiting_for_response"] = False
+        user_data["current_essay"] = None
     
     async def cancel_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /cancel command"""
@@ -118,6 +395,7 @@ class BotHandlers:
             user_data.clear()
             await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
         
+<<<<<<< Updated upstream
         # Check if essay session is active
         elif user_data.get("essay_active"):
             user_data.clear()
@@ -280,6 +558,14 @@ class BotHandlers:
             return "Working on essay questions"
         else:
             return "General studying"
+=======
+        elif user_data.get("waiting_for_response"):
+            user_data.clear()
+            await update.message.reply_text("❌ Essay cancelled. Use /essay to start a new one.")
+        
+        else:
+            await update.message.reply_text("ℹ️ No active quiz or essay to cancel.")
+>>>>>>> Stashed changes
 
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all callback queries"""
@@ -320,6 +606,20 @@ class BotHandlers:
             return
         
         try:
+            # Handle essay-related callbacks first
+            if callback_data == "essay_main":
+                await self.show_essay_subjects(update, context)
+                return
+            elif callback_data.startswith("essay_subject:"):
+                subject = callback_data.split(":")[1]
+                await self.show_subject_essays(update, context, subject)
+                return
+            elif callback_data.startswith("start_essay:"):
+                essay_full_id = callback_data.split(":")[1]
+                await self.start_essay_question(update, context, essay_full_id)
+                return
+            
+            # Handle existing navigation callbacks
             parsed = CallbackManager.parse_callback_data(callback_data)
             if not parsed:
                 await query.edit_message_text("❌ Invalid selection.")
@@ -345,6 +645,7 @@ class BotHandlers:
         except Exception as e:
             logger.error(f"❌ Error handling callback: {e}")
             await query.edit_message_text("❌ An error occurred. Please use /start to begin again.")
+<<<<<<< Updated upstream
 
     async def handle_ai_tutor_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle AI tutor menu"""
@@ -488,6 +789,8 @@ class BotHandlers:
                     "Or use /start to begin a quiz or essay session.",
                     parse_mode="Markdown"
                 )
+=======
+>>>>>>> Stashed changes
 
     async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle return to main menu - show years"""
@@ -504,17 +807,23 @@ class BotHandlers:
             display_name = FileManager.get_year_display_name(year)
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
+<<<<<<< Updated upstream
         # Add AI tutor button
         keyboard.append([InlineKeyboardButton("🤖 AI Medical Tutor", callback_data="ai_tutor_menu")])
+=======
+        # Add essay button to main menu
+        keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
+>>>>>>> Stashed changes
         
         try:
             await query.edit_message_text(
-                "🎓 Select your academic year:",
+                "🎓 Select your academic year or try essay questions:",
                 reply_markup=InlineKeyboardMarkup(keyboard)
             )
         except BadRequest:
             pass
     
+    # [Keep all the existing navigation methods unchanged - they remain the same]
     async def handle_year_selection(self, update: Update, context: ContextTypes.DEFAULT_TYPE, year: str):
         """Handle year selection - show terms"""
         query = update.callback_query
@@ -755,7 +1064,9 @@ class BotHandlers:
         application.add_handler(CommandHandler("start", self.start))
         application.add_handler(CommandHandler("help", self.help_command))
         application.add_handler(CommandHandler("stats", self.stats_command))
+        application.add_handler(CommandHandler("essay", self.essay_command))
         application.add_handler(CommandHandler("cancel", self.cancel_command))
+<<<<<<< Updated upstream
         application.add_handler(CommandHandler("explain", self.explain_command))
         application.add_handler(CommandHandler("ai", self.ai_chat_command))
         application.add_handler(CommandHandler("search", self.search_command))
@@ -771,4 +1082,14 @@ class BotHandlers:
         application.add_handler(MessageHandler(
             filters.TEXT & ~filters.COMMAND, 
             self.handle_essay_answer
+=======
+        
+        application.add_handler(CallbackQueryHandler(self.handle_callback))
+        application.add_handler(PollAnswerHandler(self.handle_poll_answer))
+        
+        # Add message handler for essay responses (must be after command handlers)
+        application.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND, 
+            self.handle_essay_response
+>>>>>>> Stashed changes
         ))

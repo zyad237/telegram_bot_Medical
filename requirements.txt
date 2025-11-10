@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 python-telegram-bot==20.7
 requests==2.31.0
 gspread==5.11.0
@@ -10,3 +11,6 @@ pandas==2.0.3
 python-dotenv==1.0.0
 pillow==10.0.1
 httpx==0.24.1
+=======
+python-telegram-bot==20.7
+>>>>>>> Stashed changes
