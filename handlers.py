@@ -1,9 +1,16 @@
 """
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 Bot command and callback handlers for 6-level navigation with AI integration
 """
 import logging
 import asyncio
+=======
+Bot command and callback handlers for 6-level navigation with AI essay support
+"""
+import logging
+import requests
+>>>>>>> Stashed changes
 =======
 Bot command and callback handlers for 6-level navigation with AI essay support
 """
@@ -19,8 +26,12 @@ from callback_manager import CallbackManager
 from quiz_manager import QuizManager
 from database import DatabaseManager
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 from ai_manager import AIManager
 from simple_essay_manager import SimpleEssayManager
+=======
+from config import CONFIG, ESSAY_QUESTIONS, get_essay_questions_by_subject
+>>>>>>> Stashed changes
 =======
 from config import CONFIG, ESSAY_QUESTIONS, get_essay_questions_by_subject
 >>>>>>> Stashed changes
@@ -53,8 +64,13 @@ class BotHandlers:
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # Add AI help button
         keyboard.append([InlineKeyboardButton("🤖 AI Medical Tutor", callback_data="ai_tutor_menu")])
+=======
+        # Add essay button to main menu
+        keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
+>>>>>>> Stashed changes
 =======
         # Add essay button to main menu
         keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
@@ -73,6 +89,7 @@ class BotHandlers:
             "• /start - Start the bot and select quiz\n"
             "• /stats - View your quiz statistics\n"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             "• /cancel - Cancel current session\n"
             "• /explain - Explain current quiz question\n"
             "• /ai <question> - Ask AI medical tutor\n"
@@ -90,6 +107,8 @@ class BotHandlers:
             "• Search: /search <topic> in college materials\n"
             "• Essay evaluation: AI-powered feedback\n\n"
 =======
+=======
+>>>>>>> Stashed changes
             "• /essay - Practice essay questions with AI grading\n"
             "• /cancel - Cancel current quiz or essay\n"
             "• /help - Show this help message\n\n"
@@ -105,15 +124,21 @@ class BotHandlers:
             "• Spelling-tolerant for medical terminology\n"
             "• Key concept evaluation\n"
             "• Constructive feedback\n\n"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             "📖 Navigation:\n"
             "• Years: Academic years\n"
             "• Terms: Semester terms\n"
             "• Blocks: Curriculum blocks\n"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             "• Subjects: Anatomy, Histology, etc.\n"
             "• Categories: Quizzes, Essays, Simple Essays"
 =======
+=======
+>>>>>>> Stashed changes
             "• Subjects: Anatomy, Histology, Physiology, Biochemistry\n"
             "• Categories: General, Midterm, Final, Essays\n"
             "• Quizzes: Individual topic quizzes"
@@ -396,6 +421,7 @@ class BotHandlers:
             await update.message.reply_text("❌ Quiz cancelled. Use /start to begin a new one.")
         
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # Check if essay session is active
         elif user_data.get("essay_active"):
             user_data.clear()
@@ -566,6 +592,14 @@ class BotHandlers:
         else:
             await update.message.reply_text("ℹ️ No active quiz or essay to cancel.")
 >>>>>>> Stashed changes
+=======
+        elif user_data.get("waiting_for_response"):
+            user_data.clear()
+            await update.message.reply_text("❌ Essay cancelled. Use /essay to start a new one.")
+        
+        else:
+            await update.message.reply_text("ℹ️ No active quiz or essay to cancel.")
+>>>>>>> Stashed changes
 
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all callback queries"""
@@ -645,6 +679,7 @@ class BotHandlers:
         except Exception as e:
             logger.error(f"❌ Error handling callback: {e}")
             await query.edit_message_text("❌ An error occurred. Please use /start to begin again.")
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
     async def handle_ai_tutor_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -791,6 +826,8 @@ class BotHandlers:
                 )
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
     async def handle_main_menu(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle return to main menu - show years"""
@@ -808,8 +845,13 @@ class BotHandlers:
             keyboard.append([InlineKeyboardButton(display_name, callback_data=callback_data)])
         
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # Add AI tutor button
         keyboard.append([InlineKeyboardButton("🤖 AI Medical Tutor", callback_data="ai_tutor_menu")])
+=======
+        # Add essay button to main menu
+        keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
+>>>>>>> Stashed changes
 =======
         # Add essay button to main menu
         keyboard.append([InlineKeyboardButton("📝 Essay Questions", callback_data="essay_main")])
@@ -1067,6 +1109,7 @@ class BotHandlers:
         application.add_handler(CommandHandler("essay", self.essay_command))
         application.add_handler(CommandHandler("cancel", self.cancel_command))
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         application.add_handler(CommandHandler("explain", self.explain_command))
         application.add_handler(CommandHandler("ai", self.ai_chat_command))
         application.add_handler(CommandHandler("search", self.search_command))
@@ -1085,11 +1128,18 @@ class BotHandlers:
 =======
         
         application.add_handler(CallbackQueryHandler(self.handle_callback))
+=======
+        
+        application.add_handler(CallbackQueryHandler(self.handle_callback))
+>>>>>>> Stashed changes
         application.add_handler(PollAnswerHandler(self.handle_poll_answer))
         
         # Add message handler for essay responses (must be after command handlers)
         application.add_handler(MessageHandler(
             filters.TEXT & ~filters.COMMAND, 
             self.handle_essay_response
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         ))
