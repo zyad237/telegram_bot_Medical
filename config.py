@@ -2,10 +2,12 @@
 Configuration for medical curriculum structure with numbered CSV files
 """
 import os
+import csv
+import logging
+
+logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN")  # Add this
-ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")      # Add this
 
 if not TOKEN:
     print("❌ ERROR: TELEGRAM_BOT_TOKEN environment variable not set!")
@@ -16,6 +18,8 @@ CONFIG = {
     "database_file": "quiz_bot.db",
     "max_questions_per_quiz": 100,
     "time_between_questions": 1,
+    "n8n_mcq_webhook": os.getenv("N8N_MCQ_WEBHOOK", "https://your-n8n.n8n.cloud/webhook/mcq-explanation"),
+    "n8n_essay_webhook": os.getenv("N8N_ESSAY_WEBHOOK", "https://your-n8n.n8n.cloud/webhook/essay-grading"),
 }
 
 # Medical Curriculum Structure
@@ -84,6 +88,12 @@ NAVIGATION_STRUCTURE = {
                                             "02_Final Questions.csv": "Final Trial 2",
                                             "03_Final Questions.csv": "Final Trial 3"
                                         }
+                                    },
+                                    "essays": {
+                                        "display_name": "📝 Anatomy Essays",
+                                        "subtopics": {
+                                            "anatomy_essays.csv": "Anatomy Essay Questions"
+                                        }
                                     }
                                 }
                             },
@@ -132,20 +142,51 @@ NAVIGATION_STRUCTURE = {
                                             "04_Formative.csv": "Formative 4",
                                             "05_Formative.csv": "Formative 5"
                                         }
+                                    },
+                                    "essays": {
+                                        "display_name": "📝 Histology Essays",
+                                        "subtopics": {
+                                            "histology_essays.csv": "Histology Essay Questions"
+                                        }
                                     }
                                 }
                             },
-                            "formative": {
-                                "display_name": "📚 Formative Assessments",
+                            "physiology": {
+                                "display_name": "🧪 Physiology",
                                 "categories": {
-                                    "weekly": {
-                                        "display_name": "📅 Weekly Assessments",
+                                    "general": {
+                                        "display_name": "🎁 General Physiology",
                                         "subtopics": {
-                                            "01_Formative.csv": "Formative Week 1 (40, 41, 42, 43)",
-                                            "02_Formative.csv": "Formative Week 2 (40, 41, 42, 43)", 
-                                            "03_Formative.csv": "Formative Week 3 (40, 41, 42, 43)",
-                                            "04_Formative.csv": "Formative Week 4 (41, 42, 43)",
-                                            "05_Formative.csv": "Formative Week 5 (42, 43)"
+                                            "01_Cell Physiology.csv": "1. Cell Physiology",
+                                            "02_Nerve Muscle Physiology.csv": "2. Nerve Muscle Physiology",
+                                            "03_Blood Physiology.csv": "3. Blood Physiology",
+                                            "04_Cardiovascular Physiology.csv": "4. Cardiovascular Physiology"
+                                        }
+                                    },
+                                    "essays": {
+                                        "display_name": "📝 Physiology Essays",
+                                        "subtopics": {
+                                            "physiology_essays.csv": "Physiology Essay Questions"
+                                        }
+                                    }
+                                }
+                            },
+                            "biochemistry": {
+                                "display_name": "🔬 Biochemistry",
+                                "categories": {
+                                    "general": {
+                                        "display_name": "🎁 General Biochemistry",
+                                        "subtopics": {
+                                            "01_Carbohydrates.csv": "1. Carbohydrates",
+                                            "02_Lipids.csv": "2. Lipids",
+                                            "03_Proteins.csv": "3. Proteins",
+                                            "04_Enzymes.csv": "4. Enzymes"
+                                        }
+                                    },
+                                    "essays": {
+                                        "display_name": "📝 Biochemistry Essays",
+                                        "subtopics": {
+                                            "biochemistry_essays.csv": "Biochemistry Essay Questions"
                                         }
                                     }
                                 }
@@ -157,3 +198,47 @@ NAVIGATION_STRUCTURE = {
         }
     }
 }
+
+def load_essay_questions():
+    """Load essay questions from subject-specific CSV files"""
+    essay_questions = {}
+    
+    # Define subject essay files
+    essay_files = {
+        "anatomy": "anatomy_essays.csv",
+        "histology": "histology_essays.csv", 
+        "physiology": "physiology_essays.csv",
+        "biochemistry": "biochemistry_essays.csv"
+    }
+    
+    for subject, filename in essay_files.items():
+        essay_file = os.path.join(CONFIG["data_dir"], "year_1", "term_1", "block_1", subject, "essays", filename)
+        
+        if os.path.exists(essay_file):
+            try:
+                with open(essay_file, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        essay_id = row.get('id', '').strip()
+                        question = row.get('question', '').strip()
+                        if essay_id and question:
+                            full_id = f"{subject}_{essay_id}"
+                            essay_questions[full_id] = {
+                                'question': question,
+                                'subject': subject,
+                                'essay_id': essay_id
+                            }
+                logger.info(f"✅ Loaded essay questions from {filename}")
+            except Exception as e:
+                logger.error(f"❌ Error loading essay questions from {filename}: {e}")
+        else:
+            logger.warning(f"⚠️ Essay file not found: {essay_file}")
+    
+    return essay_questions
+
+# Load essay questions at startup
+ESSAY_QUESTIONS = load_essay_questions()
+
+def get_essay_questions_by_subject(subject: str):
+    """Get essay questions for a specific subject"""
+    return {k: v for k, v in ESSAY_QUESTIONS.items() if v['subject'] == subject}
